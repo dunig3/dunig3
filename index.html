@@ -471,15 +471,18 @@
     const cuentaSel = cuentasDB[indexSelector];
     const textoMensaje = `💎 *NUEVO PEDIDO - D'UNIG LUXURY* 💎\n\n🛍️ *PRODUCTOS:*\n${listaProductosTexto}\n💵 *TOTAL:* $${subtotalGlobal.toFixed(2)}\n\n🏦 *PAGO:* ${cuentaSel.plataforma} - ${cuentaSel.banco}\n🔢 *REF:* ${transaccionRef}`;
 
-    // Este bucle crea una fila por cada producto, permitiendo que el descuento sea automático e individual
-for (const item of carritoVIP) {
-    await supabaseClient.from('ordenes_vip').insert([{
-        producto_id: item.id,       // ID necesario para descontar el stock
-        productos: item.titulo,     // Nombre para tu registro
-        total: item.precio || 0,    // Precio individual del producto
-        referencia: transaccionRef,
-        estado: "Pendiente"
-    }]);
+    for (const item of carritoVIP) {
+    // IMPORTANTE: Solo insertamos si el ítem es un producto real (debe tener ID)
+    // Si tus adicionales NO tienen ID real de producto, esto los ignorará.
+    if (item.id) { 
+        await supabaseClient.from('ordenes_vip').insert([{
+            producto_id: item.id,
+            productos: item.titulo,
+            total: item.precio,
+            referencia: transaccionRef,
+            estado: "Pendiente"
+        }]);
+    }
 }
 
         const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroWhatsApp}&text=${encodeURIComponent(textoMensaje)}`;

@@ -60,10 +60,10 @@
             </p>
         </div>
 
-        <div class="bg-stone-900/50 px-4 py-2 rounded-xl border border-stone-800 flex items-center gap-2">
-            <span class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Canal:</span>
-            <span class="text-xs font-black text-amber-400 tracking-wider font-futurista uppercase">LUXURY_STORE</span>
-        </div>
+        <div class="bg-stone-900/50 px-4 py-2 rounded-xl border border-stone-800 flex items-center gap-2 hidden">
+    <span class="text-[10px] text-stone-500 font-bold uppercase tracking-widest">Canal:</span>
+    <span class="text-xs font-black text-amber-400 tracking-wider font-futurista uppercase">LUXURY_STORE</span>
+</div>
         
     </div>
 
@@ -104,17 +104,18 @@
 
             <div id="contenedor-adicionales" class="w-full"></div>
 
-            <div class="grid grid-cols-2 gap-4 border-t border-stone-900 pt-4">
-                <div>
-                    <span class="text-[9px] uppercase text-stone-500 font-bold block">Disponibilidad:</span>
-                    <span id="detalle-stock" class="text-xs text-white font-bold">0 unidades</span>
-                </div>
-                <div>
-                    <span class="text-[9px] uppercase text-stone-500 font-bold block">Autenticidad VIP:</span>
-                    <span class="text-xs text-green-400 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Certificada</span>
-                </div>
-            </div>
-            <div class="pt-2">
+<div class="grid grid-cols-2 gap-4 border-t border-stone-900 pt-4">
+    <!-- Ocultamos el stock con 'hidden' en lugar de borrarlo, así el script lo encuentra y no da error -->
+    <div class="hidden">
+        <span class="text-[9px] uppercase text-stone-500 font-bold block">Disponibilidad:</span>
+        <span id="detalle-stock" class="text-xs text-white font-bold">0 unidades</span>
+    </div>
+    
+    <div>
+        <span class="text-[9px] uppercase text-stone-500 font-bold block">Autenticidad VIP:</span>
+        <span class="text-xs text-green-400 font-bold flex items-center gap-1"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Certificada</span>
+    </div>
+</div>
                 <button onclick="agregarAlCarritoYVolver()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-futurista font-black py-4 px-6 rounded-xl text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 cursor-pointer shadow-lg transition-all duration-300">
                     <i data-lucide="shopping-bag" class="w-4 h-4"></i> AÑADIR A LA BOLSA VIP
                 </button>
@@ -241,7 +242,6 @@
                             <h3 class="font-futurista font-bold text-xs tracking-wide text-white uppercase truncate">${p.titulo}</h3>
                             <div class="flex justify-between items-center pt-2 border-t border-stone-900/60">
                                 <span class="font-mono text-xs text-amber-400 font-bold">$${parseFloat(p.precio).toFixed(2)}</span>
-                                <span class="text-[9px] font-mono text-stone-500">${p.stock} ITEMS</span>
                             </div>
                         </div>
                     </div>`;
@@ -471,19 +471,13 @@
     const cuentaSel = cuentasDB[indexSelector];
     const textoMensaje = `💎 *NUEVO PEDIDO - D'UNIG LUXURY* 💎\n\n🛍️ *PRODUCTOS:*\n${listaProductosTexto}\n💵 *TOTAL:* $${subtotalGlobal.toFixed(2)}\n\n🏦 *PAGO:* ${cuentaSel.plataforma} - ${cuentaSel.banco}\n🔢 *REF:* ${transaccionRef}`;
 
-    for (const item of carritoVIP) {
-    // IMPORTANTE: Solo insertamos si el ítem es un producto real (debe tener ID)
-    // Si tus adicionales NO tienen ID real de producto, esto los ignorará.
-    if (item.id) { 
+    // ... (todo tu código anterior hasta finalizarOrdenCompraVIP) ...
         await supabaseClient.from('ordenes_vip').insert([{
-            producto_id: item.id,
-            productos: item.titulo,
-            total: item.precio,
+            productos: carritoVIP.map(item => item.titulo).join(', '),
+            total: subtotalGlobal,
             referencia: transaccionRef,
             estado: "Pendiente"
         }]);
-    }
-}
 
         const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroWhatsApp}&text=${encodeURIComponent(textoMensaje)}`;
         

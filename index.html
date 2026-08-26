@@ -230,7 +230,7 @@
             window.addEventListener('click', (e) => {
                 const contenedor = document.getElementById('dropdown-cuentas-personalizado');
                 const selectorBox = document.getElementById('texto-cuenta-seleccionada')?.parentElement;
-                if (selectorBox && !selectorBox.contains(e.target) && !contenedor.contains(e.target)) {
+                if (selectorBox && !selectorBox.contains(e.target) && contenedor && !contenedor.contains(e.target)) {
                     contenedor.classList.add('hidden');
                     document.getElementById('icono-flecha-selector')?.classList.remove('rotate-180');
                 }
@@ -294,13 +294,11 @@
             if (s.foto) galeriaImagenesActuales.push(s.foto);
             if (s.imagen_url && s.imagen_url !== s.foto) galeriaImagenesActuales.push(s.imagen_url);
             
-            // Soporta hasta las 10 fotos separadas por comas en 'imagenes_slider'
             if (s.imagenes_slider) {
                 let extras = s.imagenes_slider.split(',').map(img => img.trim()).filter(img => img.length > 0);
                 galeriaImagenesActuales = galeriaImagenesActuales.concat(extras);
             }
 
-            // Limitar estrictamente a un máximo de 10 fotos
             galeriaImagenesActuales = galeriaImagenesActuales.slice(0, 10);
 
             const imgPrincipal = document.getElementById('detalle-imagen-principal');
@@ -332,7 +330,6 @@
             indiceFotoActual = idx;
             document.getElementById('detalle-imagen-principal').src = galeriaImagenesActuales[idx];
             
-            // Actualizar bordes activos de miniaturas
             const minis = document.getElementById('detalle-galeria-miniaturas').children;
             for(let i = 0; i < minis.length; i++) {
                 if(i === idx) {
@@ -363,10 +360,8 @@
         function actualizarVisorModal() {
             document.getElementById('visor-imagen-grande').src = galeriaImagenesActuales[indiceFotoActual];
             document.getElementById('visor-contador').innerText = `${indiceFotoActual + 1} / ${galeriaImagenesActuales.length}`;
-            // Reflejar también en miniatura principal si navegan en pantalla completa
             document.getElementById('detalle-imagen-principal').src = galeriaImagenesActuales[indiceFotoActual];
             
-            // Actualizar miniatura activa abajo en detalle
             const minis = document.getElementById('detalle-galeria-miniaturas').children;
             for(let i = 0; i < minis.length; i++) {
                 if(i === indiceFotoActual) {
@@ -427,7 +422,7 @@
         }
 
         function calcularMontosReserva() {
-            let basePrecio = servicioActualObjeto ? servicioActualObjeto.precio : 0;
+            let basePrecio = servicioActualObjeto ? parseFloat(servicioActualObjeto.precio) : 0;
             let extras = 0;
             document.querySelectorAll('.check-adicional:checked').forEach(cb => {
                 extras += parseFloat(cb.getAttribute('data-precio')) || 0;
@@ -436,8 +431,11 @@
             const total = basePrecio + extras;
             document.getElementById('reserva-precio-total').value = total;
 
-            const porcentaje = parseInt(document.getElementById('input-porcentaje').value) || 30;
-            document.getElementById('txt-porcentaje-val').innerText = `${porcentaje}%`;
+            const porcentajeInput = document.getElementById('input-porcentaje');
+            const porcentaje = porcentajeInput ? parseInt(porcentajeInput.value) || 30 : 30;
+            
+            const txtPorcentajeVal = document.getElementById('txt-porcentaje-val');
+            if (txtPorcentajeVal) txtPorcentajeVal.innerText = `${porcentaje}%`;
 
             const anticipo = (total * porcentaje) / 100;
             const restante = total - anticipo;
@@ -459,7 +457,7 @@
                 
                 cuentasGlobales.forEach((c, index) => {
                     const plataformaStr = c.plataforma ? c.plataforma.toUpperCase().replace('_',' ') : 'PAGO MÓVIL';
-                    const textoMostrar = `[${plataformaStr}]`;
+                    const textoMostrar = `[${plataformaStr}] ${c.banco || ''}`;
                     
                     htmlOpciones += `
                         <div onclick="seleccionarCuentaCustom(${index}, '${textoMostrar.replace(/'/g, "\\'")}')" class="p-3 hover:bg-amber-500/10 hover:text-amber-300 text-stone-200 cursor-pointer transition-colors">
@@ -476,41 +474,44 @@
         function toggleMenuCuentas() {
             const dropdown = document.getElementById('dropdown-cuentas-personalizado');
             const flecha = document.getElementById('icono-flecha-selector');
-            dropdown.classList.toggle('hidden');
-            flecha.classList.toggle('rotate-180');
+            if(dropdown) dropdown.classList.toggle('hidden');
+            if(flecha) flecha.classList.toggle('rotate-180');
         }
 
         function seleccionarCuentaCustom(index, textoFormateado) {
             document.getElementById('input-cuenta-indice').value = index;
-            document.getElementById('texto-cuenta-seleccionada').innerText = textoFormateado;
-            document.getElementById('texto-cuenta-seleccionada').className = "text-white font-bold";
+            const txtSeleccionada = document.getElementById('texto-cuenta-seleccionada');
+            if(txtSeleccionada) {
+                txtSeleccionada.innerText = textoFormateado;
+                txtSeleccionada.className = "text-white font-bold";
+            }
             
             toggleMenuCuentas();
             mostrarDetallesCuentaSeleccionada();
         }
 
         function mostrarDetallesCuentaSeleccionada() {
-            const index = document.getElementById('input-cuenta-indice').value;
+            const indexStr = document.getElementById('input-cuenta-indice').value;
             const cajaDatos = document.getElementById('caja-datos-banco');
             const contenido = document.getElementById('contenido-detalles-cuenta');
 
-            if (index === "" || !cuentasGlobales[index]) {
-                cajaDatos.classList.add('hidden');
+            if (indexStr === "" || indexStr === null || !cuentasGlobales[parseInt(indexStr)]) {
+                if(cajaDatos) cajaDatos.classList.add('hidden');
                 return;
             }
 
-            const cuenta = cuentasGlobales[index];
-            cajaDatos.classList.remove('hidden');
+            const cuenta = cuentasGlobales[parseInt(indexStr)];
+            if(cajaDatos) cajaDatos.classList.remove('hidden');
 
             let htmlDetalles = "";
-            if(cuenta.banco)   htmlDetalles += `<div><span class="text-amber-400/70 text-[10px] uppercase font-bold block">Banco / Plataforma:</span> <span class="text-white font-bold text-sm">${cuenta.banco}</span></div>`;
+            if(cuenta.banco)    htmlDetalles += `<div><span class="text-amber-400/70 text-[10px] uppercase font-bold block">Banco / Plataforma:</span> <span class="text-white font-bold text-sm">${cuenta.banco}</span></div>`;
             if(cuenta.titular)  htmlDetalles += `<div class="mt-1"><span class="text-amber-400/70 text-[10px] uppercase font-bold block">Titular:</span> <span class="text-stone-200">${cuenta.titular}</span></div>`;
             if(cuenta.ci)       htmlDetalles += `<div class="mt-1"><span class="text-amber-400/70 text-[10px] uppercase font-bold block">CI / RIF:</span> <span class="text-stone-200 font-bold tracking-wider">${cuenta.ci}</span></div>`;
             if(cuenta.telefono) htmlDetalles += `<div class="mt-1"><span class="text-amber-400/70 text-[10px] uppercase font-bold block">Teléfono:</span> <span class="text-stone-200">${cuenta.telefono}</span></div>`;
             if(cuenta.email)    htmlDetalles += `<div class="mt-1"><span class="text-amber-400/70 text-[10px] uppercase font-bold block">Email:</span> <span class="text-stone-200 break-all">${cuenta.email}</span></div>`;
             if(cuenta.detalles) htmlDetalles += `<div class="mt-1 border-t border-stone-800 pt-1.5 text-[11px] text-stone-400 italic">${cuenta.detalles}</div>`;
 
-            contenido.innerHTML = htmlDetalles;
+            if(contenido) contenido.innerHTML = htmlDetalles;
             lucide.createIcons();
         }
 
@@ -518,6 +519,7 @@
             input.value = input.value.replace(/\D/g, '');
             const btn = document.getElementById('btn-enviar-reserva');
             const msgError = document.getElementById('msg-error-ref');
+            if(!btn || !msgError) return;
 
             if(input.value.length === 12) {
                 msgError.classList.add('hidden');
@@ -546,17 +548,22 @@
             const total = parseFloat(document.getElementById('reserva-precio-total').value) || 0;
             const fecha = document.getElementById('reserva-fecha').value;
             const hora = document.getElementById('reserva-hora').value;
-            const porcentaje = parseInt(document.getElementById('input-porcentaje').value);
-            const indexCuenta = document.getElementById('input-cuenta-indice').value;
+            const porcentaje = parseInt(document.getElementById('input-porcentaje').value) || 30;
+            const indexCuentaStr = document.getElementById('input-cuenta-indice').value;
             const referencia = document.getElementById('reserva-referencia').value.trim();
 
-            if(!servicioBase || !fecha || !hora || indexCuenta === "" || referencia.length !== 12) {
+            if(!servicioBase || !fecha || !hora || indexCuentaStr === "" || referencia.length !== 12) {
                 alert("Por favor completa todos los datos, selecciona un método de pago y asegúrate de que la referencia tenga exactamente 12 números.");
                 return;
             }
 
-            const cuenta = cuentasGlobales[indexCuenta];
-            const infoPagoStr = `[${cuenta.banco}] CI: ${cuenta.ci} Tlf: ${cuenta.telefono} (Ref: ${referencia})`;
+            const cuenta = cuentasGlobales[parseInt(indexCuentaStr)];
+            if (!cuenta) {
+                alert("Por favor selecciona una cuenta de pago válida.");
+                return;
+            }
+
+            const infoPagoStr = `[${cuenta.banco || 'PAGO'}] CI: ${cuenta.ci || 'N/A'} Tlf: ${cuenta.telefono || 'N/A'} (Ref: ${referencia})`;
 
             const anticipo = (total * porcentaje) / 100;
             const restante = total - anticipo;

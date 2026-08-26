@@ -66,6 +66,7 @@
 
             <input type="hidden" id="reserva-servicio-nombre">
             <input type="hidden" id="reserva-precio-total" value="0">
+            <input type="hidden" id="input-cuenta-indice" value="">
 
             <div class="space-y-4 pt-2">
                 <!-- ADICIONALES DE SERVICIO -->
@@ -111,15 +112,23 @@
                     </div>
                 </div>
 
-                <!-- 2. MÉTODO DE PAGO DE RESERVA (Formato exacto solicitado) -->
-                <div class="space-y-2 pt-2 border-t border-stone-900">
+                <!-- 2. SELECTOR DE CUENTA PERSONALIZADO (Estilo exacto de tu primera foto) -->
+                <div class="space-y-2 pt-2 border-t border-stone-900 relative">
                     <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">2. Seleccionar Cuenta para el Anticipo</span>
-                    <select id="select-cuenta-pago" onchange="mostrarDetallesCuentaSeleccionada()" class="w-full bg-stone-950 border border-stone-800 text-xs text-stone-300 p-3 rounded-xl focus:outline-none focus:border-amber-400 font-mono cursor-pointer">
-                        <option value="">Seleccione un método / cuenta</option>
-                    </select>
+                    
+                    <!-- Caja principal del selector custom -->
+                    <div onclick="toggleMenuCuentas()" class="w-full bg-stone-950 border border-stone-800 hover:border-amber-400 text-xs text-stone-300 p-3.5 rounded-xl font-mono cursor-pointer flex items-center justify-between transition-colors">
+                        <span id="texto-cuenta-seleccionada" class="text-stone-400">Seleccione un método / cuenta</span>
+                        <i id="icono-flecha-selector" data-lucide="chevron-down" class="w-4 h-4 text-stone-400 transition-transform"></i>
+                    </div>
+
+                    <!-- Menú desplegable personalizado flotante -->
+                    <div id="dropdown-cuentas-personalizado" class="hidden absolute left-0 right-0 top-[calc(100%+4px)] z-50 bg-stone-950/95 backdrop-blur-xl border border-amber-500/30 rounded-xl shadow-2xl overflow-hidden font-mono text-xs divide-y divide-stone-900 max-h-60 overflow-y-auto">
+                        <!-- Las opciones se inyectan dinámicamente aquí -->
+                    </div>
                 </div>
 
-                <!-- Caja de detalles desplegable -->
+                <!-- Caja de detalles desplegable de la cuenta -->
                 <div id="caja-datos-banco" class="hidden bg-stone-900/90 border border-amber-500/20 p-4 rounded-xl space-y-2 font-mono text-xs">
                     <div class="text-[9px] uppercase font-futurista font-black text-amber-400 tracking-wider flex items-center gap-1.5 border-b border-stone-800/60 pb-1.5">
                         <i data-lucide="info" class="w-3 h-3"></i> Datos de Transferencia Confirmados
@@ -157,6 +166,16 @@
             await cargarCuentasPagoVitrina();
             await descargarAdicionalesDeSupabase();
             lucide.createIcons();
+
+            // Cerrar menú desplegable al hacer clic fuera
+            window.addEventListener('click', (e) => {
+                const contenedor = document.getElementById('dropdown-cuentas-personalizado');
+                const selectorBox = document.getElementById('texto-cuenta-seleccionada').parentElement;
+                if (!selectorBox.contains(e.target) && !contenedor.contains(e.target)) {
+                    contenedor.classList.add('hidden');
+                    document.getElementById('icono-flecha-selector').classList.remove('rotate-180');
+                }
+            });
         });
 
         function irAPantallaVitrina() {
@@ -245,7 +264,6 @@
             document.getElementById('checkout-titulo-servicio').innerText = titulo;
             document.getElementById('checkout-precio-servicio').innerText = `$${precio.toFixed(2)}`;
             
-            // Desmarcar adicionales previos si los hubiera
             document.querySelectorAll('.check-adicional').forEach(cb => cb.checked = false);
 
             calcularMontosReserva();
@@ -254,8 +272,6 @@
 
         function calcularMontosReserva() {
             let basePrecio = servicioSeleccionadoActual ? servicioSeleccionadoActual.precio : 0;
-            
-            // Sumar adicionales seleccionados
             let extras = 0;
             document.querySelectorAll('.check-adicional:checked').forEach(cb => {
                 extras += parseFloat(cb.getAttribute('data-precio')) || 0;
@@ -277,29 +293,53 @@
 
         async function cargarCuentasPagoVitrina() {
             const { data } = await supabaseClient.from('cuentas_pago').select('*');
-            const selectCuenta = document.getElementById('select-cuenta-pago');
-            if(!selectCuenta) return;
+            const contenedorDropdown = document.getElementById('dropdown-cuentas-personalizado');
+            if(!contenedorDropdown) return;
 
             cuentasGlobales = data || [];
 
             if(cuentasGlobales.length > 0) {
-                selectCuenta.innerHTML = `<option value="">Seleccione un método / cuenta</option>`;
+                let htmlOpciones = `<div onclick="seleccionarCuentaCustom('', 'Seleccione un método / cuenta')" class="p-3 text-stone-400 hover:bg-stone-900 cursor-pointer transition-colors">Seleccione un método / cuenta</div>`;
+                
                 cuentasGlobales.forEach((c, index) => {
                     const plataformaStr = c.plataforma ? c.plataforma.toUpperCase().replace('_',' ') : 'PAGO MÓVIL';
                     const bancoStr = c.banco ? c.banco : 'Banco';
                     const telStr = c.telefono ? c.telefono : 'N/A';
                     const ciStr = c.ci ? c.ci : 'N/A';
                     
-                    // Formato exacto requerido con banco, teléfono y CI/RIF en la opción
-                    selectCuenta.innerHTML += `<option value="${index}">[${plataformaStr}] ${bancoStr} | Tel: ${telStr} | CI/RIF: ${ciStr}</option>`;
+                    const textoMostrar = `[${plataformaStr}] ${bancoStr} | Tel: ${telStr} | CI/RIF: ${ciStr}`;
+                    
+                    htmlOpciones += `
+                        <div onclick="seleccionarCuentaCustom(${index}, '${textoMostrar.replace(/'/g, "\\'")}')" class="p-3 hover:bg-amber-500/10 hover:text-amber-300 text-stone-200 cursor-pointer transition-colors flex flex-col gap-0.5">
+                            <span class="font-bold text-amber-400">[${plataformaStr}] - ${bancoStr}</span>
+                            <span class="text-[10px] text-stone-400">Tel: ${telStr} | CI/RIF: ${ciStr}</span>
+                        </div>
+                    `;
                 });
+                contenedorDropdown.innerHTML = htmlOpciones;
             } else {
-                selectCuenta.innerHTML = `<option value="">No hay cuentas configuradas</option>`;
+                contenedorDropdown.innerHTML = `<div class="p-3 text-stone-500">No hay cuentas configuradas</div>`;
             }
         }
 
+        function toggleMenuCuentas() {
+            const dropdown = document.getElementById('dropdown-cuentas-personalizado');
+            const flecha = document.getElementById('icono-flecha-selector');
+            dropdown.classList.toggle('hidden');
+            flecha.classList.toggle('rotate-180');
+        }
+
+        function seleccionarCuentaCustom(index, textoFormateado) {
+            document.getElementById('input-cuenta-indice').value = index;
+            document.getElementById('texto-cuenta-seleccionada').innerText = textoFormateado;
+            document.getElementById('texto-cuenta-seleccionada').className = "text-white font-bold";
+            
+            toggleMenuCuentas();
+            mostrarDetallesCuentaSeleccionada();
+        }
+
         function mostrarDetallesCuentaSeleccionada() {
-            const index = document.getElementById('select-cuenta-pago').value;
+            const index = document.getElementById('input-cuenta-indice').value;
             const cajaDatos = document.getElementById('caja-datos-banco');
             const contenido = document.getElementById('contenido-detalles-cuenta');
 
@@ -345,8 +385,6 @@
 
         async function enviarReservaCliente() {
             let servicioBase = document.getElementById('reserva-servicio-nombre').value;
-            
-            // Recopilar adicionales seleccionados para agregarlos al nombre del servicio
             let adicionalesSeleccionados = [];
             document.querySelectorAll('.check-adicional:checked').forEach(cb => {
                 adicionalesSeleccionados.push(cb.getAttribute('data-nombre'));
@@ -358,7 +396,7 @@
             const fecha = document.getElementById('reserva-fecha').value;
             const hora = document.getElementById('reserva-hora').value;
             const porcentaje = parseInt(document.getElementById('input-porcentaje').value);
-            const indexCuenta = document.getElementById('select-cuenta-pago').value;
+            const indexCuenta = document.getElementById('input-cuenta-indice').value;
             const referencia = document.getElementById('reserva-referencia').value.trim();
 
             if(!servicioBase || !fecha || !hora || indexCuenta === "" || referencia.length !== 12) {

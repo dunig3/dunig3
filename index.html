@@ -15,7 +15,7 @@
         .text-gold { color: #e5c158; text-shadow: 0 0 12px rgba(229, 193, 88, 0.2); }
         .glass-panel { background: linear-gradient(135deg, rgba(28, 20, 24, 0.45) 0%, rgba(12, 8, 10, 0.6) 100%); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.02); }
         .grid-bg { background-image: linear-gradient(rgba(229, 193, 88, 0.01) 1px, transparent 1px), linear-gradient(90deg, rgba(229, 193, 88, 0.01) 1px, transparent 1px); background-size: 32px 32px; }
-        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-thumb { background: #e5c158; border-radius: 10px; }
     </style>
 </head>
@@ -51,19 +51,22 @@
         </div>
     </main>
 
-    <!-- 2. PANTALLA DE DETALLE AMPLIADO Y GALERÍA DE FOTOS -->
+    <!-- 2. PANTALLA DE DETALLE AMPLIADO Y GALERÍA DE 10 FOTOS -->
     <main id="pantalla-detalle" class="hidden max-w-4xl w-full mx-auto px-4 py-8 flex-grow relative z-10">
         <button onclick="irAPantallaVitrina()" class="mb-6 flex items-center gap-2 text-xs font-futurista uppercase tracking-widest text-stone-400 hover:text-amber-400 font-bold cursor-pointer transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a la Vitrina
         </button>
 
         <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
-            <!-- Galería de imágenes cargadas -->
             <div class="space-y-4">
-                <div class="w-full h-72 sm:h-96 rounded-2xl overflow-hidden border border-stone-800 bg-stone-950">
-                    <img id="detalle-imagen-principal" src="" alt="Servicio" class="w-full h-full object-cover">
+                <!-- Imagen Principal con opción de click para pantalla completa -->
+                <div class="w-full h-80 sm:h-[450px] rounded-2xl overflow-hidden border border-stone-800 bg-stone-950 relative group cursor-pointer" onclick="abrirVisorPantallaCompleta()">
+                    <img id="detalle-imagen-principal" src="" alt="Servicio" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                    <div class="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-stone-800 text-[10px] font-mono text-amber-400 flex items-center gap-1.5">
+                        <i data-lucide="maximize-2" class="w-3 h-3"></i> Ampliar Pantalla Completa
+                    </div>
                 </div>
-                <!-- Miniaturas adicionales -->
+                <!-- Miniaturas (Soporta hasta 10 fotos) -->
                 <div id="detalle-galeria-miniaturas" class="flex gap-3 overflow-x-auto pb-2"></div>
             </div>
 
@@ -178,6 +181,33 @@
         </div>
     </main>
 
+    <!-- MODAL DE VISOR PANTALLA COMPLETA (ADAPTABLE Y NÍTIDO) -->
+    <div id="modal-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex flex-col justify-between p-4 sm:p-6">
+        <div class="flex items-center justify-between z-10">
+            <span id="visor-contador" class="text-xs font-mono text-amber-400 bg-stone-900/80 px-3 py-1.5 rounded-lg border border-stone-800">1 / 10</span>
+            <button onclick="cerrarVisorPantallaCompleta()" class="bg-stone-900/80 border border-stone-800 hover:border-amber-400 text-white p-2.5 rounded-xl cursor-pointer transition-colors flex items-center gap-2 text-xs uppercase font-futurista">
+                <i data-lucide="x" class="w-5 h-5"></i> Cerrar
+            </button>
+        </div>
+
+        <div class="flex-grow flex items-center justify-center relative px-2 py-4 overflow-hidden">
+            <button onclick="cambiarFotoVisor(-1)" class="absolute left-2 sm:left-6 z-10 bg-black/60 hover:bg-amber-500 hover:text-black border border-stone-800 text-white p-3 rounded-full transition-colors cursor-pointer">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            </button>
+            
+            <!-- Imagen adaptada a toda la pantalla sin pixelar ni deformar -->
+            <img id="visor-imagen-grande" src="" alt="Vista ampliada" class="max-h-[80vh] max-w-[90vw] object-contain rounded-xl shadow-2xl transition-all duration-300">
+
+            <button onclick="cambiarFotoVisor(1)" class="absolute right-2 sm:right-6 z-10 bg-black/60 hover:bg-amber-500 hover:text-black border border-stone-800 text-white p-3 rounded-full transition-colors cursor-pointer">
+                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <div class="text-center text-[10px] text-stone-500 font-mono tracking-widest">
+            Usa las flechas para navegar entre las 10 fotos disponibles.
+        </div>
+    </div>
+
     <footer class="border-t border-stone-950 bg-black/60 p-4 text-center text-[10px] text-stone-600 font-mono tracking-widest mt-12">© 2026 D'UNIG LUXURY ECOSISTEMA. TODOS LOS DERECHOS RESERVADOS.</footer>
 
     <script>
@@ -188,6 +218,8 @@
         let cuentasGlobales = [];
         let servicioActualObjeto = null;
         let listaAdicionales = [];
+        let galeriaImagenesActuales = [];
+        let indiceFotoActual = 0;
 
         window.addEventListener('DOMContentLoaded', async () => {
             await cargarServiciosVitrina();
@@ -224,8 +256,8 @@
 
             contenedor.innerHTML = "";
             data.forEach(s => {
-                const imagenHtml = s.imagen ? 
-                    `<div class="w-full h-40 overflow-hidden rounded-xl mb-3 border border-stone-800"><img src="${s.imagen}" alt="${s.titulo}" class="w-full h-full object-cover"></div>` : 
+                const imagenHtml = s.foto ? 
+                    `<div class="w-full h-40 overflow-hidden rounded-xl mb-3 border border-stone-800"><img src="${s.foto}" alt="${s.titulo}" class="w-full h-full object-cover"></div>` : 
                     `<div class="w-full h-24 bg-stone-950 rounded-xl mb-3 border border-stone-800/60 flex items-center justify-center text-stone-600 font-mono text-[10px] uppercase">Sin Imagen</div>`;
 
                 contenedor.innerHTML += `
@@ -258,23 +290,29 @@
             document.getElementById('detalle-precio').innerText = `$${parseFloat(s.precio).toFixed(2)}`;
             document.getElementById('detalle-descripcion').innerText = s.descripcion || 'Sin descripción disponible para este servicio.';
 
-            // Manejo de imágenes (si tienes varias fotos separadas por coma o un array, o la principal)
-            let imagenesArray = [];
-            if (s.imagen) imagenesArray.push(s.imagen);
-            if (s.imagenes_adicionales) {
-                // Si guardas varias en texto separadas por coma o JSON
-                let extras = s.imagenes_adicionales.split(',').map(img => img.trim());
-                imagenesArray = imagenesArray.concat(extras);
+            galeriaImagenesActuales = [];
+            if (s.foto) galeriaImagenesActuales.push(s.foto);
+            if (s.imagen_url && s.imagen_url !== s.foto) galeriaImagenesActuales.push(s.imagen_url);
+            
+            // Soporta hasta las 10 fotos separadas por comas en 'imagenes_slider'
+            if (s.imagenes_slider) {
+                let extras = s.imagenes_slider.split(',').map(img => img.trim()).filter(img => img.length > 0);
+                galeriaImagenesActuales = galeriaImagenesActuales.concat(extras);
             }
+
+            // Limitar estrictamente a un máximo de 10 fotos
+            galeriaImagenesActuales = galeriaImagenesActuales.slice(0, 10);
 
             const imgPrincipal = document.getElementById('detalle-imagen-principal');
             const contMiniaturas = document.getElementById('detalle-galeria-miniaturas');
 
-            if (imagenesArray.length > 0) {
-                imgPrincipal.src = imagenesArray[0];
-                if (imagenesArray.length > 1) {
-                    contMiniaturas.innerHTML = imagenesArray.map((img, idx) => `
-                        <div onclick="document.getElementById('detalle-imagen-principal').src='${img}'" class="w-16 h-16 rounded-xl overflow-hidden border border-stone-800 cursor-pointer hover:border-amber-400 flex-shrink-0">
+            if (galeriaImagenesActuales.length > 0) {
+                indiceFotoActual = 0;
+                imgPrincipal.src = galeriaImagenesActuales[0];
+                
+                if (galeriaImagenesActuales.length > 1) {
+                    contMiniaturas.innerHTML = galeriaImagenesActuales.map((img, idx) => `
+                        <div onclick="seleccionarFotoIndice(${idx})" class="w-16 h-16 rounded-xl overflow-hidden border ${idx === 0 ? 'border-amber-400' : 'border-stone-800'} cursor-pointer hover:border-amber-400 flex-shrink-0 transition-colors">
                             <img src="${img}" class="w-full h-full object-cover">
                         </div>
                     `).join('');
@@ -288,6 +326,55 @@
                 contMiniaturas.classList.add('hidden');
             }
             lucide.createIcons();
+        }
+
+        function seleccionarFotoIndice(idx) {
+            indiceFotoActual = idx;
+            document.getElementById('detalle-imagen-principal').src = galeriaImagenesActuales[idx];
+            
+            // Actualizar bordes activos de miniaturas
+            const minis = document.getElementById('detalle-galeria-miniaturas').children;
+            for(let i = 0; i < minis.length; i++) {
+                if(i === idx) {
+                    minis[i].className = "w-16 h-16 rounded-xl overflow-hidden border border-amber-400 cursor-pointer flex-shrink-0 transition-colors";
+                } else {
+                    minis[i].className = "w-16 h-16 rounded-xl overflow-hidden border border-stone-800 cursor-pointer hover:border-amber-400 flex-shrink-0 transition-colors";
+                }
+            }
+        }
+
+        function abrirVisorPantallaCompleta() {
+            if(galeriaImagenesActuales.length === 0) return;
+            document.getElementById('modal-fullscreen').classList.remove('hidden');
+            actualizarVisorModal();
+        }
+
+        function cerrarVisorPantallaCompleta() {
+            document.getElementById('modal-fullscreen').classList.add('hidden');
+        }
+
+        function cambiarFotoVisor(direccion) {
+            indiceFotoActual += direccion;
+            if(indiceFotoActual < 0) indiceFotoActual = galeriaImagenesActuales.length - 1;
+            if(indiceFotoActual >= galeriaImagenesActuales.length) indiceFotoActual = 0;
+            actualizarVisorModal();
+        }
+
+        function actualizarVisorModal() {
+            document.getElementById('visor-imagen-grande').src = galeriaImagenesActuales[indiceFotoActual];
+            document.getElementById('visor-contador').innerText = `${indiceFotoActual + 1} / ${galeriaImagenesActuales.length}`;
+            // Reflejar también en miniatura principal si navegan en pantalla completa
+            document.getElementById('detalle-imagen-principal').src = galeriaImagenesActuales[indiceFotoActual];
+            
+            // Actualizar miniatura activa abajo en detalle
+            const minis = document.getElementById('detalle-galeria-miniaturas').children;
+            for(let i = 0; i < minis.length; i++) {
+                if(i === indiceFotoActual) {
+                    minis[i].className = "w-16 h-16 rounded-xl overflow-hidden border border-amber-400 cursor-pointer flex-shrink-0 transition-colors";
+                } else {
+                    minis[i].className = "w-16 h-16 rounded-xl overflow-hidden border border-stone-800 cursor-pointer hover:border-amber-400 flex-shrink-0 transition-colors";
+                }
+            }
         }
 
         function procederAlCheckoutDesdeDetalle() {
@@ -372,16 +459,11 @@
                 
                 cuentasGlobales.forEach((c, index) => {
                     const plataformaStr = c.plataforma ? c.plataforma.toUpperCase().replace('_',' ') : 'PAGO MÓVIL';
-                    const bancoStr = c.banco ? c.banco : 'Banco';
-                    const telStr = c.telefono ? c.telefono : 'N/A';
-                    const ciStr = c.ci ? c.ci : 'N/A';
-                    
-                    const textoMostrar = `[${plataformaStr}] ${bancoStr} | Tel: ${telStr} | CI/RIF: ${ciStr}`;
+                    const textoMostrar = `[${plataformaStr}]`;
                     
                     htmlOpciones += `
-                        <div onclick="seleccionarCuentaCustom(${index}, '${textoMostrar.replace(/'/g, "\\'")}')" class="p-3 hover:bg-amber-500/10 hover:text-amber-300 text-stone-200 cursor-pointer transition-colors flex flex-col gap-0.5">
-                            <span class="font-bold text-amber-400">[${plataformaStr}] - ${bancoStr}</span>
-                            <span class="text-[10px] text-stone-400">Tel: ${telStr} | CI/RIF: ${ciStr}</span>
+                        <div onclick="seleccionarCuentaCustom(${index}, '${textoMostrar.replace(/'/g, "\\'")}')" class="p-3 hover:bg-amber-500/10 hover:text-amber-300 text-stone-200 cursor-pointer transition-colors">
+                            <span class="font-bold text-amber-400">${textoMostrar}</span>
                         </div>
                     `;
                 });

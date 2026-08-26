@@ -213,6 +213,187 @@
     <script>
         const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co"; 
         const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co";        
+        <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D'UNIG BOOKING</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        .font-futurista { font-family: 'Orbitron', sans-serif; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: #f4f4f5; }
+        .glass-panel { background: rgba(18, 18, 23, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- HEADER -->
+    <header class="border-b border-stone-800 bg-stone-950/80 sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="irAPantallaVitrina()">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                    <span class="font-futurista font-black text-amber-400 text-sm">D</span>
+                </div>
+                <div>
+                    <h1 class="font-futurista font-black text-sm tracking-wider text-white">D'UNIG <span class="text-amber-400">BOOKING</span></h1>
+                    <p class="text-[10px] text-stone-400 tracking-widest uppercase font-mono">Sistema Integrado de Reservas</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 mt-6">
+
+        <!-- PANTALLA VITRINA -->
+        <section id="pantalla-vitrina" class="space-y-6">
+            <div class="border-b border-stone-800 pb-3">
+                <h2 class="font-futurista font-bold text-xs uppercase tracking-widest text-amber-400">Selecciona tu servicio</h2>
+            </div>
+            <div id="grid-servicios" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="glass-panel p-6 rounded-2xl text-stone-500 font-mono text-xs col-span-full text-center">Cargando servicios disponibles...</div>
+            </div>
+        </section>
+
+        <!-- PANTALLA DETALLE -->
+        <section id="pantalla-detalle" class="hidden space-y-6">
+            <button onclick="irAPantallaVitrina()" class="inline-flex items-center gap-2 text-xs font-futurista text-stone-400 hover:text-amber-400 transition-colors cursor-pointer">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a servicios
+            </button>
+            <div class="glass-panel p-6 rounded-2xl border border-stone-800 space-y-4">
+                <div class="w-full h-64 rounded-xl overflow-hidden border border-stone-800 bg-stone-950 cursor-pointer relative group" onclick="abrirVisorPantallaCompleta()">
+                    <img id="detalle-imagen-principal" class="w-full h-full object-cover transition-transform group-hover:scale-105">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span class="bg-black/70 text-amber-400 text-xs font-futurista px-3 py-1.5 rounded-lg border border-amber-500/30 flex items-center gap-2">
+                            <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Ampliar imagen
+                        </span>
+                    </div>
+                </div>
+                <div id="detalle-galeria-miniaturas" class="flex gap-2 overflow-x-auto pb-2 hidden"></div>
+                <div>
+                    <h2 id="detalle-titulo" class="text-lg font-bold text-white font-futurista mb-1"></h2>
+                    <p id="detalle-precio" class="text-amber-400 font-mono font-bold text-xl"></p>
+                </div>
+                <p id="detalle-descripcion" class="text-xs text-stone-300 leading-relaxed"></p>
+                <button onclick="procederAlCheckoutDesdeDetalle()" class="w-full bg-amber-500 text-black font-futurista font-black py-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
+                    Reservar este servicio <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- PANTALLA CHECKOUT -->
+        <section id="pantalla-checkout" class="hidden space-y-6">
+            <button onclick="irAPantallaVitrina()" class="inline-flex items-center gap-2 text-xs font-futurista text-stone-400 hover:text-amber-400 transition-colors cursor-pointer">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Cancelar / Volver
+            </button>
+            
+            <div class="glass-panel p-6 rounded-2xl border border-stone-800 space-y-6">
+                <div>
+                    <h2 class="font-futurista font-bold text-sm text-white mb-1">Finalizar Reserva</h2>
+                    <p class="text-xs text-stone-400">Completa los datos de tu cita y reporta tu pago de anticipo.</p>
+                </div>
+
+                <!-- Resumen de servicio -->
+                <div class="bg-stone-950 p-4 rounded-xl border border-stone-800 space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span id="checkout-titulo-servicio" class="text-xs font-bold text-white font-futurista"></span>
+                        <span id="checkout-precio-servicio" class="text-xs font-mono font-bold text-amber-400"></span>
+                    </div>
+                    <input type="hidden" id="reserva-servicio-nombre">
+                    <input type="hidden" id="reserva-precio-total">
+                    <div id="contenedor-adicionales"></div>
+                </div>
+
+                <!-- Fecha y Hora -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] uppercase font-futurista font-bold text-stone-400 mb-1">Fecha de la Cita</label>
+                        <input type="date" id="reserva-fecha" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-xs text-white focus:border-amber-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase font-futurista font-bold text-stone-400 mb-1">Hora de la Cita</label>
+                        <input type="time" id="reserva-hora" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-xs text-white focus:border-amber-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- Porcentaje de Anticipo -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[10px] uppercase font-futurista font-bold text-stone-400">Anticipo requerido</label>
+                        <span id="txt-porcentaje-val" class="text-xs font-mono font-bold text-amber-400">30%</span>
+                    </div>
+                    <input type="range" id="input-porcentaje" min="10" max="100" step="5" value="30" oninput="calcularMontosReserva()" class="w-full accent-amber-500 cursor-pointer">
+                </div>
+
+                <!-- Desglose de montos -->
+                <div class="bg-amber-500/5 border border-amber-500/20 p-4 rounded-xl space-y-1.5 text-xs">
+                    <div class="flex justify-between text-stone-300"><span>Total Servicio:</span> <span id="resumen-total" class="font-mono font-bold text-white"></span></div>
+                    <div class="flex justify-between text-amber-400 font-bold"><span>Anticipo a pagar:</span> <span id="resumen-anticipo" class="font-mono"></span></div>
+                    <div class="flex justify-between text-stone-400 text-[11px] pt-1 border-t border-amber-500/10"><span>Restante en sitio:</span> <span id="resumen-restante" class="font-mono"></span></div>
+                </div>
+
+                <!-- Selección de cuenta -->
+                <div class="space-y-2 relative">
+                    <label class="block text-[10px] uppercase font-futurista font-bold text-stone-400">Método / Cuenta de Pago</label>
+                    <input type="hidden" id="input-cuenta-indice" value="">
+                    
+                    <div onclick="toggleMenuCuentas()" class="w-full bg-stone-950 border border-stone-800 rounded-xl p-3.5 flex items-center justify-between cursor-pointer hover:border-stone-700 transition-colors">
+                        <span id="texto-cuenta-seleccionada" class="text-stone-400 text-xs">Seleccione un método / cuenta</span>
+                        <i data-lucide="chevron-down" id="icono-flecha-selector" class="w-4 h-4 text-stone-400 transition-transform"></i>
+                    </div>
+
+                    <div id="dropdown-cuentas-personalizado" class="hidden absolute left-0 right-0 top-full mt-1 bg-stone-950 border border-stone-800 rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto text-xs"></div>
+                </div>
+
+                <!-- Caja de detalles de la cuenta seleccionada -->
+                <div id="caja-datos-banco" class="hidden bg-stone-950 border border-stone-800 p-4 rounded-xl space-y-2 text-xs">
+                    <div class="text-[10px] uppercase font-futurista font-bold text-amber-400 border-b border-stone-800 pb-1 mb-2">Datos para realizar el pago</div>
+                    <div id="contenido-detalles-cuenta" class="space-y-1.5"></div>
+                </div>
+
+                <!-- Referencia de pago -->
+                <div class="space-y-1">
+                    <label class="block text-[10px] uppercase font-futurista font-bold text-stone-400">Número de Referencia (Últimos 12 dígitos)</label>
+                    <input type="text" id="reserva-referencia" maxlength="12" placeholder="Ej: 012345678901" oninput="validarReferencia(this)" class="w-full bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-xs text-white tracking-widest font-mono focus:border-amber-500 outline-none">
+                    <p id="msg-error-ref" class="text-[10px] text-red-400 hidden">La referencia debe tener exactamente 12 dígitos numéricos.</p>
+                </div>
+
+                <!-- Botón Enviar -->
+                <button id="btn-enviar-reserva" disabled onclick="enviarReservaCliente()" class="w-full bg-stone-800 text-stone-500 font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Registrar Reserva
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL FULLSCREEN IMAGEN -->
+    <div id="modal-fullscreen" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex flex-col items-center justify-center p-4">
+        <button onclick="cerrarVisorPantallaCompleta()" class="absolute top-4 right-4 bg-stone-900 border border-stone-800 text-stone-300 p-3 rounded-full hover:bg-stone-800 transition-colors cursor-pointer z-10">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+        <div class="relative max-w-4xl max-h-[80vh] flex items-center justify-center">
+            <button onclick="cambiarFotoVisor(-1)" class="absolute left-2 bg-black/60 border border-stone-800 text-amber-400 p-2.5 rounded-full hover:bg-black transition-colors cursor-pointer">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+            <img id="visor-imagen-grande" class="max-h-[75vh] max-w-full object-contain rounded-xl border border-stone-800">
+            <button onclick="cambiarFotoVisor(1)" class="absolute right-2 bg-black/60 border border-stone-800 text-amber-400 p-2.5 rounded-full hover:bg-black transition-colors cursor-pointer">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div id="visor-contador" class="mt-4 text-xs font-mono text-stone-400 bg-stone-900 border border-stone-800 px-3 py-1 rounded-full"></div>
+    </div>
+
+    <!-- SCRIPT DE FUNCIONAMIENTO -->
+    <script>
+        const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co";        
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYWFzcnZscHl4ZmpleXFoeXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1MDg5OTYsImV4cCI6MjEwMTA4NDk5Nn0.27I4TF1oeZqVsBCcKpyrwF0EeWQ5EKQzcsTzO1T4qVM";        
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -246,38 +427,50 @@
         }
 
         async function cargarServiciosVitrina() {
-            const { data, error } = await supabaseClient.from('productos').select('*');
             const contenedor = document.getElementById('grid-servicios');
             if(!contenedor) return;
 
-            if(error || !data || data.length === 0) {
-                contenedor.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-stone-500 font-mono text-xs col-span-full">No hay servicios disponibles por el momento.</div>`;
-                return;
+            try {
+                const { data, error } = await supabaseClient.from('productos').select('*');
+                
+                if (error) {
+                    console.error("Error de Supabase en productos:", error);
+                    contenedor.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-red-400 font-mono text-xs col-span-full">Error al cargar: ${error.message}</div>`;
+                    return;
+                }
+
+                if(!data || data.length === 0) {
+                    contenedor.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-stone-500 font-mono text-xs col-span-full">No hay servicios disponibles por el momento.</div>`;
+                    return;
+                }
+
+                contenedor.innerHTML = "";
+                data.forEach(s => {
+                    const imagenHtml = s.foto ? 
+                        `<div class="w-full h-40 overflow-hidden rounded-xl mb-3 border border-stone-800"><img src="${s.foto}" alt="${s.titulo}" class="w-full h-full object-cover"></div>` : 
+                        `<div class="w-full h-24 bg-stone-950 rounded-xl mb-3 border border-stone-800/60 flex items-center justify-center text-stone-600 font-mono text-[10px] uppercase">Sin Imagen</div>`;
+
+                    contenedor.innerHTML += `
+                        <div class="glass-panel p-6 rounded-2xl border border-stone-900 space-y-3 flex flex-col justify-between">
+                            <div>
+                                ${imagenHtml}
+                                <h3 class="text-sm font-bold text-white font-futurista mb-1">${s.titulo}</h3>
+                                <p class="text-xs text-stone-400 line-clamp-2">${s.descripcion || 'Sin descripción adicional.'}</p>
+                            </div>
+                            <div class="flex items-center justify-between pt-3 border-t border-stone-900">
+                                <span class="text-amber-400 font-mono font-bold text-base">$${parseFloat(s.precio).toFixed(2)}</span>
+                                <button onclick='abrirDetalleServicio(${JSON.stringify(s)})' class="bg-stone-900 border border-stone-800 text-amber-400 px-4 py-2 rounded-xl text-xs uppercase font-futurista font-bold hover:bg-amber-500 hover:text-black transition-colors cursor-pointer">
+                                    Ver Detalle
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                lucide.createIcons();
+            } catch (err) {
+                console.error("Excepción atrapada:", err);
+                contenedor.innerHTML = `<div class="glass-panel p-6 rounded-2xl text-red-400 font-mono text-xs col-span-full">Error de conexión con la base de datos.</div>`;
             }
-
-            contenedor.innerHTML = "";
-            data.forEach(s => {
-                const imagenHtml = s.foto ? 
-                    `<div class="w-full h-40 overflow-hidden rounded-xl mb-3 border border-stone-800"><img src="${s.foto}" alt="${s.titulo}" class="w-full h-full object-cover"></div>` : 
-                    `<div class="w-full h-24 bg-stone-950 rounded-xl mb-3 border border-stone-800/60 flex items-center justify-center text-stone-600 font-mono text-[10px] uppercase">Sin Imagen</div>`;
-
-                contenedor.innerHTML += `
-                    <div class="glass-panel p-6 rounded-2xl border border-stone-900 space-y-3 flex flex-col justify-between">
-                        <div>
-                            ${imagenHtml}
-                            <h3 class="text-sm font-bold text-white font-futurista mb-1">${s.titulo}</h3>
-                            <p class="text-xs text-stone-400 line-clamp-2">${s.descripcion || 'Sin descripción adicional.'}</p>
-                        </div>
-                        <div class="flex items-center justify-between pt-3 border-t border-stone-900">
-                            <span class="text-amber-400 font-mono font-bold text-base">$${parseFloat(s.precio).toFixed(2)}</span>
-                            <button onclick='abrirDetalleServicio(${JSON.stringify(s)})' class="bg-stone-900 border border-stone-800 text-amber-400 px-4 py-2 rounded-xl text-xs uppercase font-futurista font-bold hover:bg-amber-500 hover:text-black transition-colors cursor-pointer">
-                                Ver Detalle
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            lucide.createIcons();
         }
 
         function abrirDetalleServicio(s) {
@@ -517,7 +710,6 @@
         }
 
         function validarReferencia(input) {
-            // Limita estrictamente a números y corta a un máximo de 12 dígitos
             input.value = input.value.replace(/\D/g, '').slice(0, 12);
             
             const btn = document.getElementById('btn-enviar-reserva');
@@ -577,7 +769,7 @@
                 porcentaje_anticipo: porcentaje,
                 monto_anticipo: anticipo,
                 monto_restante: restante,
-                referencia: referencia, // Se envían exclusivamente los 12 dígitos exactos
+                referencia: referencia,
                 estado: 'Confirmada'
             };
 

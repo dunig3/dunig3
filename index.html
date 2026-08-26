@@ -212,7 +212,8 @@
 
     <script>
         const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYWFzcnZscHl4ZmpleXFoeXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1MDg5OTYsImV4cCI6MjEwMTA4NDk5Nn0.27I4TF1oeZqVsBCcKpyrwF0EeWQ5EKQzcsTzO1T4qVM"; 
+        const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co";        
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhjYWFzcnZscHl4ZmpleXFoeXZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU1MDg5OTYsImV4cCI6MjEwMTA4NDk5Nn0.27I4TF1oeZqVsBCcKpyrwF0EeWQ5EKQzcsTzO1T4qVM";        
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let cuentasGlobales = [];
@@ -516,7 +517,9 @@
         }
 
         function validarReferencia(input) {
-            input.value = input.value.replace(/\D/g, '');
+            // Limita estrictamente a números y corta a un máximo de 12 dígitos
+            input.value = input.value.replace(/\D/g, '').slice(0, 12);
+            
             const btn = document.getElementById('btn-enviar-reserva');
             const msgError = document.getElementById('msg-error-ref');
             if(!btn || !msgError) return;
@@ -553,7 +556,7 @@
             const referencia = document.getElementById('reserva-referencia').value.trim();
 
             if(!servicioBase || !fecha || !hora || indexCuentaStr === "" || referencia.length !== 12) {
-                alert("Por favor completa todos los datos, selecciona un método de pago y asegúrate de que la referencia tenga exactamente 12 números.");
+                alert("Por favor completa todos los datos, selecciona un método de pago y asegúrate de que la referencia tenga exactamente 12 dígitos.");
                 return;
             }
 
@@ -562,8 +565,6 @@
                 alert("Por favor selecciona una cuenta de pago válida.");
                 return;
             }
-
-            const infoPagoStr = `[${cuenta.banco || 'PAGO'}] CI: ${cuenta.ci || 'N/A'} Tlf: ${cuenta.telefono || 'N/A'} (Ref: ${referencia})`;
 
             const anticipo = (total * porcentaje) / 100;
             const restante = total - anticipo;
@@ -576,7 +577,7 @@
                 porcentaje_anticipo: porcentaje,
                 monto_anticipo: anticipo,
                 monto_restante: restante,
-                referencia: infoPagoStr,
+                referencia: referencia, // Se envían exclusivamente los 12 dígitos exactos
                 estado: 'Confirmada'
             };
 

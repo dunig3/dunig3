@@ -39,11 +39,11 @@
     </header>
 
     <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
-        <!-- Listado de Servicios Disponibles -->
+        <!-- Listado de Servicios Disponibles con soporte de Fotos -->
         <div class="lg:col-span-2 space-y-6">
             <div class="flex items-center justify-between border-b border-stone-800 pb-3">
                 <h2 class="text-sm font-futurista font-black uppercase tracking-widest text-white flex items-center gap-2">
-                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Selecciona tu Servicio
+                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Selecciona tu Servicio / Alojamiento
                 </h2>
             </div>
             <div id="grid-servicios" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,18 +105,21 @@
                         </div>
                     </div>
 
-                    <!-- Información de Cuentas de Pago -->
-                    <div id="info-cuentas-pago" class="bg-stone-950 p-3 rounded-xl border border-stone-800 text-[11px] text-stone-300 space-y-1">
-                        <span class="text-stone-500 uppercase text-[9px] block font-bold">Datos para Pago Móvil (Anticipo):</span>
-                        <p id="texto-banco-info">Cargando cuentas bancarias...</p>
+                    <!-- Menú Desplegable (Dropdown) de Cuentas de Pago -->
+                    <div class="space-y-1">
+                        <label class="text-[9px] uppercase text-stone-400 font-bold">Seleccionar Cuenta para el Anticipo</label>
+                        <select id="select-cuenta-pago" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3 rounded-xl focus:outline-none font-mono cursor-pointer">
+                            <option value="">Cargando cuentas disponibles...</option>
+                        </select>
                     </div>
 
                     <div>
-                        <label class="text-[9px] uppercase text-stone-400 font-bold">Referencia Bancaria del Anticipo</label>
-                        <input type="text" id="reserva-referencia" placeholder="Últimos 4 dígitos o ref." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3 rounded-xl focus:outline-none font-mono">
+                        <label class="text-[9px] uppercase text-stone-400 font-bold">Referencia Bancaria (Exactamente 12 Números)</label>
+                        <input type="text" id="reserva-referencia" maxlength="12" oninput="validarReferencia(this)" placeholder="Ej: 012345678901" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3 rounded-xl focus:outline-none font-mono">
+                        <p id="msg-error-ref" class="text-[9px] text-red-400 mt-1 hidden">La referencia debe contener exactamente 12 números.</p>
                     </div>
 
-                    <button onclick="enviarReservaCliente()" class="w-full bg-amber-500 text-black font-futurista font-black p-3.5 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors">
+                    <button id="btn-enviar-reserva" onclick="enviarReservaCliente()" disabled class="w-full bg-stone-800 text-stone-500 font-futurista font-black p-3.5 rounded-xl text-xs uppercase tracking-widest cursor-not-allowed transition-colors">
                         Confirmar y Enviar Reserva
                     </button>
                 </div>
@@ -149,9 +152,15 @@
 
             contenedor.innerHTML = "";
             data.forEach(s => {
+                // Comprobamos si tiene imagen o foto registrada
+                const imagenHtml = s.imagen ? 
+                    `<div class="w-full h-40 overflow-hidden rounded-xl mb-3 border border-stone-800"><img src="${s.imagen}" alt="${s.titulo}" class="w-full h-full object-cover"></div>` : 
+                    `<div class="w-full h-24 bg-stone-950 rounded-xl mb-3 border border-stone-800/60 flex items-center justify-center text-stone-600 font-mono text-[10px] uppercase">Sin Imagen</div>`;
+
                 contenedor.innerHTML += `
                     <div class="glass-panel p-6 rounded-2xl border border-stone-900 space-y-3 flex flex-col justify-between">
                         <div>
+                            ${imagenHtml}
                             <h3 class="text-sm font-bold text-white font-futurista mb-1">${s.titulo}</h3>
                             <p class="text-xs text-stone-400 line-clamp-2">${s.descripcion || 'Sin descripción adicional.'}</p>
                         </div>
@@ -190,17 +199,37 @@
 
         async function cargarCuentasPagoVitrina() {
             const { data } = await supabaseClient.from('cuentas_pago').select('*');
-            const infoDiv = document.getElementById('texto-banco-info');
-            if(!infoDiv) return;
+            const selectCuenta = document.getElementById('select-cuenta-pago');
+            if(!selectCuenta) return;
 
             if(data && data.length > 0) {
-                let html = "";
+                selectCuenta.innerHTML = `<option value="">Seleccione un método / cuenta</option>`;
                 data.forEach(c => {
-                    html += `<div><b>${c.banco}</b> | CI: ${c.ci} | Tlf: ${c.telefono}</div>`;
+                    selectCuenta.innerHTML += `<option value="${c.banco} - ${c.telefono}">Banco: ${c.banco} | Tel: ${c.telefono} | CI/RIF: ${c.ci}</option>`;
                 });
-                infoDiv.innerHTML = html;
             } else {
-                infoDiv.innerHTML = "No hay cuentas configuradas.";
+                selectCuenta.innerHTML = `<option value="">No hay cuentas configuradas</option>`;
+            }
+        }
+
+        function validarReferencia(input) {
+            // Eliminar cualquier caracter que no sea número
+            input.value = input.value.replace(/\D/g, '');
+            const btn = document.getElementById('btn-enviar-reserva');
+            const msgError = document.getElementById('msg-error-ref');
+
+            if(input.value.length === 12) {
+                msgError.classList.add('hidden');
+                btn.removeAttribute('disabled');
+                btn.className = "w-full bg-amber-500 text-black font-futurista font-black p-3.5 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors";
+            } else {
+                if(input.value.length > 0) {
+                    msgError.classList.remove('hidden');
+                } else {
+                    msgError.classList.add('hidden');
+                }
+                btn.setAttribute('disabled', 'true');
+                btn.className = "w-full bg-stone-800 text-stone-500 font-futurista font-black p-3.5 rounded-xl text-xs uppercase tracking-widest cursor-not-allowed transition-colors";
             }
         }
 
@@ -211,10 +240,11 @@
             const fecha = document.getElementById('reserva-fecha').value;
             const hora = document.getElementById('reserva-hora').value;
             const porcentaje = parseInt(document.getElementById('input-porcentaje').value);
+            const cuentaSeleccionada = document.getElementById('select-cuenta-pago').value;
             const referencia = document.getElementById('reserva-referencia').value.trim();
 
-            if(!servicioId || !fecha || !hora || !referencia) {
-                alert("Por favor completa todos los datos, selecciona un servicio e introduce la referencia de tu pago.");
+            if(!servicioId || !fecha || !hora || !cuentaSeleccionada || referencia.length !== 12) {
+                alert("Por favor completa todos los datos, selecciona un servicio, una cuenta de pago y asegúrate de que la referencia tenga exactamente 12 números.");
                 return;
             }
 
@@ -229,7 +259,7 @@
                 porcentaje_anticipo: porcentaje,
                 monto_anticipo: anticipo,
                 monto_restante: restante,
-                referencia: referencia,
+                referencia: `${cuentaSeleccionada} (Ref: ${referencia})`,
                 estado: 'Confirmada'
             };
 

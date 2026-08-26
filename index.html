@@ -51,7 +51,7 @@
         </div>
     </main>
 
-    <!-- Pantalla de Configuración de Cita y Pago Estilo Pizza Planeta -->
+    <!-- Pantalla de Configuración de Cita y Pago -->
     <main id="pantalla-checkout" class="hidden max-w-3xl w-full mx-auto px-4 py-8 flex-grow relative z-10">
         <button onclick="irAPantallaVitrina()" class="mb-6 flex items-center gap-2 text-xs font-futurista uppercase tracking-widest text-stone-400 hover:text-amber-400 font-bold cursor-pointer transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a la Vitrina
@@ -68,6 +68,9 @@
             <input type="hidden" id="reserva-precio-total" value="0">
 
             <div class="space-y-4 pt-2">
+                <!-- ADICIONALES DE SERVICIO -->
+                <div id="contenedor-adicionales" class="w-full"></div>
+
                 <!-- 1. AGENDA FECHA Y HORA -->
                 <div class="space-y-2">
                     <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">1. Agenda Fecha y Hora</span>
@@ -83,7 +86,7 @@
                     </div>
                 </div>
 
-                <!-- Selector de Porcentaje de Anticipo (20% al 70%) -->
+                <!-- Porcentaje de Anticipo -->
                 <div class="space-y-1.5 pt-2 border-t border-stone-900">
                     <div class="flex justify-between text-xs font-bold">
                         <span class="text-stone-400 uppercase text-[9px]">Porcentaje de Anticipo:</span>
@@ -92,7 +95,7 @@
                     <input type="range" id="input-porcentaje" min="20" max="70" step="10" value="30" oninput="calcularMontosReserva()" class="w-full accent-amber-400 cursor-pointer">
                 </div>
 
-                <!-- Datos de Pago Fraccionado -->
+                <!-- Resumen de Montos -->
                 <div class="bg-stone-950/80 p-4 rounded-xl border border-stone-800/80 space-y-2 font-mono text-xs">
                     <div class="flex justify-between text-stone-400">
                         <span>Precio Total:</span>
@@ -108,15 +111,15 @@
                     </div>
                 </div>
 
-                <!-- 2. MÉTODO DE PAGO DE RESERVA (Igualito a Pizza Planeta) -->
+                <!-- 2. MÉTODO DE PAGO DE RESERVA (Formato exacto solicitado) -->
                 <div class="space-y-2 pt-2 border-t border-stone-900">
-                    <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">2. Método de Pago de Reserva</span>
+                    <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">2. Seleccionar Cuenta para el Anticipo</span>
                     <select id="select-cuenta-pago" onchange="mostrarDetallesCuentaSeleccionada()" class="w-full bg-stone-950 border border-stone-800 text-xs text-stone-300 p-3 rounded-xl focus:outline-none focus:border-amber-400 font-mono cursor-pointer">
-                        <option value="">-- Seleccione método de pago --</option>
+                        <option value="">Seleccione un método / cuenta</option>
                     </select>
                 </div>
 
-                <!-- Ventana desplegable con los datos de transferencia al seleccionar -->
+                <!-- Caja de detalles desplegable -->
                 <div id="caja-datos-banco" class="hidden bg-stone-900/90 border border-amber-500/20 p-4 rounded-xl space-y-2 font-mono text-xs">
                     <div class="text-[9px] uppercase font-futurista font-black text-amber-400 tracking-wider flex items-center gap-1.5 border-b border-stone-800/60 pb-1.5">
                         <i data-lucide="info" class="w-3 h-3"></i> Datos de Transferencia Confirmados
@@ -127,12 +130,12 @@
                 <!-- 3. REFERENCIA BANCARIA -->
                 <div class="space-y-2 pt-2 border-t border-stone-900">
                     <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">3. Referencia Bancaria (12 Dígitos)</span>
-                    <input type="text" id="reserva-referencia" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" oninput="validarReferencia(this)" placeholder="Ingresa los 12 dígitos del pago" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3 rounded-xl focus:outline-none font-mono tracking-wider focus:border-amber-400">
+                    <input type="text" id="reserva-referencia" inputmode="numeric" pattern="[0-9]{12}" maxlength="12" oninput="validarReferencia(this)" placeholder="Ej: 012345678901" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3 rounded-xl focus:outline-none font-mono tracking-wider focus:border-amber-400">
                     <p id="msg-error-ref" class="text-[9px] text-red-400 mt-1 hidden">La referencia debe contener exactamente 12 números.</p>
                 </div>
 
                 <button id="btn-enviar-reserva" onclick="enviarReservaCliente()" disabled class="w-full bg-stone-800 text-stone-500 font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-not-allowed transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirmar y Pagar Reserva
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i> Confirmar y Enviar Reserva
                 </button>
             </div>
         </div>
@@ -147,10 +150,12 @@
 
         let cuentasGlobales = [];
         let servicioSeleccionadoActual = null;
+        let listaAdicionales = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
             await cargarServiciosVitrina();
             await cargarCuentasPagoVitrina();
+            await descargarAdicionalesDeSupabase();
             lucide.createIcons();
         });
 
@@ -201,6 +206,37 @@
             });
         }
 
+        async function descargarAdicionalesDeSupabase() {
+            const { data, error } = await supabaseClient.from('adicionales').select('*');
+            if (!error && data) {
+                listaAdicionales = data;
+                renderizarAdicionales();
+            }
+        }
+
+        function renderizarAdicionales() {
+            const contenedor = document.getElementById('contenedor-adicionales');
+            if (!contenedor || listaAdicionales.length === 0) return;
+
+            contenedor.innerHTML = `
+                <details class="group bg-stone-950 border border-stone-800 rounded-xl overflow-hidden my-2">
+                    <summary class="list-none p-3 text-[10px] font-bold text-stone-400 cursor-pointer flex justify-between items-center hover:text-amber-400 font-futurista uppercase tracking-wider">
+                        <span>Opciones / Adicionales de Servicio</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="p-3 border-t border-stone-900 space-y-2">
+                        ${listaAdicionales.map(ad => `
+                            <label class="flex items-center gap-3 cursor-pointer p-2 hover:bg-stone-900 rounded-lg">
+                                <input type="checkbox" class="check-adicional w-4 h-4 accent-amber-500" data-nombre="${ad.nombre}" data-precio="${ad.precio}" onchange="calcularMontosReserva()">
+                                <span class="text-xs text-white font-medium">${ad.nombre}</span>
+                                <span class="text-xs text-amber-400 font-mono ml-auto">+$${parseFloat(ad.precio).toFixed(2)}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </details>`;
+            lucide.createIcons();
+        }
+
         function seleccionarServicioParaReserva(id, titulo, precio) {
             servicioSeleccionadoActual = { id, titulo, precio };
             document.getElementById('reserva-servicio-nombre').value = titulo;
@@ -209,14 +245,26 @@
             document.getElementById('checkout-titulo-servicio').innerText = titulo;
             document.getElementById('checkout-precio-servicio').innerText = `$${precio.toFixed(2)}`;
             
+            // Desmarcar adicionales previos si los hubiera
+            document.querySelectorAll('.check-adicional').forEach(cb => cb.checked = false);
+
             calcularMontosReserva();
             irAPantallaCheckout();
         }
 
         function calcularMontosReserva() {
-            const total = parseFloat(document.getElementById('reserva-precio-total').value) || 0;
-            const porcentaje = parseInt(document.getElementById('input-porcentaje').value) || 30;
+            let basePrecio = servicioSeleccionadoActual ? servicioSeleccionadoActual.precio : 0;
             
+            // Sumar adicionales seleccionados
+            let extras = 0;
+            document.querySelectorAll('.check-adicional:checked').forEach(cb => {
+                extras += parseFloat(cb.getAttribute('data-precio')) || 0;
+            });
+
+            const total = basePrecio + extras;
+            document.getElementById('reserva-precio-total').value = total;
+
+            const porcentaje = parseInt(document.getElementById('input-porcentaje').value) || 30;
             document.getElementById('txt-porcentaje-val').innerText = `${porcentaje}%`;
 
             const anticipo = (total * porcentaje) / 100;
@@ -235,11 +283,15 @@
             cuentasGlobales = data || [];
 
             if(cuentasGlobales.length > 0) {
-                selectCuenta.innerHTML = `<option value="">-- Seleccione método de pago --</option>`;
+                selectCuenta.innerHTML = `<option value="">Seleccione un método / cuenta</option>`;
                 cuentasGlobales.forEach((c, index) => {
                     const plataformaStr = c.plataforma ? c.plataforma.toUpperCase().replace('_',' ') : 'PAGO MÓVIL';
-                    const bancoStr = c.banco ? ` - ${c.banco}` : '';
-                    selectCuenta.innerHTML += `<option value="${index}">[${plataformaStr}]${bancoStr}</option>`;
+                    const bancoStr = c.banco ? c.banco : 'Banco';
+                    const telStr = c.telefono ? c.telefono : 'N/A';
+                    const ciStr = c.ci ? c.ci : 'N/A';
+                    
+                    // Formato exacto requerido con banco, teléfono y CI/RIF en la opción
+                    selectCuenta.innerHTML += `<option value="${index}">[${plataformaStr}] ${bancoStr} | Tel: ${telStr} | CI/RIF: ${ciStr}</option>`;
                 });
             } else {
                 selectCuenta.innerHTML = `<option value="">No hay cuentas configuradas</option>`;
@@ -292,7 +344,16 @@
         }
 
         async function enviarReservaCliente() {
-            const servicioNombre = document.getElementById('reserva-servicio-nombre').value;
+            let servicioBase = document.getElementById('reserva-servicio-nombre').value;
+            
+            // Recopilar adicionales seleccionados para agregarlos al nombre del servicio
+            let adicionalesSeleccionados = [];
+            document.querySelectorAll('.check-adicional:checked').forEach(cb => {
+                adicionalesSeleccionados.push(cb.getAttribute('data-nombre'));
+            });
+
+            const servicioNombreFinal = `${servicioBase}${adicionalesSeleccionados.length > 0 ? ' (+ ' + adicionalesSeleccionados.join(', ') + ')' : ''}`;
+            
             const total = parseFloat(document.getElementById('reserva-precio-total').value) || 0;
             const fecha = document.getElementById('reserva-fecha').value;
             const hora = document.getElementById('reserva-hora').value;
@@ -300,7 +361,7 @@
             const indexCuenta = document.getElementById('select-cuenta-pago').value;
             const referencia = document.getElementById('reserva-referencia').value.trim();
 
-            if(!servicioNombre || !fecha || !hora || indexCuenta === "" || referencia.length !== 12) {
+            if(!servicioBase || !fecha || !hora || indexCuenta === "" || referencia.length !== 12) {
                 alert("Por favor completa todos los datos, selecciona un método de pago y asegúrate de que la referencia tenga exactamente 12 números.");
                 return;
             }
@@ -312,7 +373,7 @@
             const restante = total - anticipo;
 
             const payload = {
-                servicio: servicioNombre,
+                servicio: servicioNombreFinal,
                 fecha_cita: fecha,
                 hora_cita: hora,
                 total: total,

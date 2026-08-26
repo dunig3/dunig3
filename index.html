@@ -39,7 +39,7 @@
         </div>
     </header>
 
-    <!-- Pantalla Vitrina / Listado de Servicios -->
+    <!-- 1. PANTALLA VITRINA / LISTADO DE SERVICIOS -->
     <main id="pantalla-vitrina" class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-6 relative z-10">
         <div class="flex items-center justify-between border-b border-stone-800 pb-3">
             <h2 class="text-sm font-futurista font-black uppercase tracking-widest text-white flex items-center gap-2">
@@ -51,10 +51,42 @@
         </div>
     </main>
 
-    <!-- Pantalla de Configuración de Cita y Pago -->
-    <main id="pantalla-checkout" class="hidden max-w-3xl w-full mx-auto px-4 py-8 flex-grow relative z-10">
+    <!-- 2. PANTALLA DE DETALLE AMPLIADO Y GALERÍA DE FOTOS -->
+    <main id="pantalla-detalle" class="hidden max-w-4xl w-full mx-auto px-4 py-8 flex-grow relative z-10">
         <button onclick="irAPantallaVitrina()" class="mb-6 flex items-center gap-2 text-xs font-futurista uppercase tracking-widest text-stone-400 hover:text-amber-400 font-bold cursor-pointer transition-colors">
             <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver a la Vitrina
+        </button>
+
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
+            <!-- Galería de imágenes cargadas -->
+            <div class="space-y-4">
+                <div class="w-full h-72 sm:h-96 rounded-2xl overflow-hidden border border-stone-800 bg-stone-950">
+                    <img id="detalle-imagen-principal" src="" alt="Servicio" class="w-full h-full object-cover">
+                </div>
+                <!-- Miniaturas adicionales -->
+                <div id="detalle-galeria-miniaturas" class="flex gap-3 overflow-x-auto pb-2"></div>
+            </div>
+
+            <div class="space-y-3 border-t border-stone-900 pt-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h2 id="detalle-titulo" class="text-2xl sm:text-3xl font-black font-futurista text-white tracking-wide">Título del Servicio</h2>
+                    <span id="detalle-precio" class="text-xl sm:text-2xl font-mono font-bold text-amber-400">$0.00</span>
+                </div>
+                <p id="detalle-descripcion" class="text-stone-300 text-sm leading-relaxed whitespace-pre-line pt-2">Descripción detallada del servicio...</p>
+            </div>
+
+            <div class="pt-4 border-t border-stone-900">
+                <button onclick="procederAlCheckoutDesdeDetalle()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="calendar-check" class="w-4 h-4"></i> Reservar Este Servicio
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. PANTALLA DE CHECKOUT Y PAGO -->
+    <main id="pantalla-checkout" class="hidden max-w-3xl w-full mx-auto px-4 py-8 flex-grow relative z-10">
+        <button onclick="abrirDetalleServicio(servicioActualObjeto)" class="mb-6 flex items-center gap-2 text-xs font-futurista uppercase tracking-widest text-stone-400 hover:text-amber-400 font-bold cursor-pointer transition-colors">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Detalle
         </button>
 
         <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
@@ -112,20 +144,16 @@
                     </div>
                 </div>
 
-                <!-- 2. SELECTOR DE CUENTA PERSONALIZADO (Estilo exacto de tu primera foto) -->
+                <!-- 2. SELECTOR DE CUENTA PERSONALIZADO -->
                 <div class="space-y-2 pt-2 border-t border-stone-900 relative">
                     <span class="text-[10px] text-amber-400 font-futurista font-black tracking-widest block uppercase">2. Seleccionar Cuenta para el Anticipo</span>
                     
-                    <!-- Caja principal del selector custom -->
                     <div onclick="toggleMenuCuentas()" class="w-full bg-stone-950 border border-stone-800 hover:border-amber-400 text-xs text-stone-300 p-3.5 rounded-xl font-mono cursor-pointer flex items-center justify-between transition-colors">
                         <span id="texto-cuenta-seleccionada" class="text-stone-400">Seleccione un método / cuenta</span>
                         <i id="icono-flecha-selector" data-lucide="chevron-down" class="w-4 h-4 text-stone-400 transition-transform"></i>
                     </div>
 
-                    <!-- Menú desplegable personalizado flotante -->
-                    <div id="dropdown-cuentas-personalizado" class="hidden absolute left-0 right-0 top-[calc(100%+4px)] z-50 bg-stone-950/95 backdrop-blur-xl border border-amber-500/30 rounded-xl shadow-2xl overflow-hidden font-mono text-xs divide-y divide-stone-900 max-h-60 overflow-y-auto">
-                        <!-- Las opciones se inyectan dinámicamente aquí -->
-                    </div>
+                    <div id="dropdown-cuentas-personalizado" class="hidden absolute left-0 right-0 top-[calc(100%+4px)] z-50 bg-stone-950/95 backdrop-blur-xl border border-amber-500/30 rounded-xl shadow-2xl overflow-hidden font-mono text-xs divide-y divide-stone-900 max-h-60 overflow-y-auto"></div>
                 </div>
 
                 <!-- Caja de detalles desplegable de la cuenta -->
@@ -158,7 +186,7 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let cuentasGlobales = [];
-        let servicioSeleccionadoActual = null;
+        let servicioActualObjeto = null;
         let listaAdicionales = [];
 
         window.addEventListener('DOMContentLoaded', async () => {
@@ -167,28 +195,21 @@
             await descargarAdicionalesDeSupabase();
             lucide.createIcons();
 
-            // Cerrar menú desplegable al hacer clic fuera
             window.addEventListener('click', (e) => {
                 const contenedor = document.getElementById('dropdown-cuentas-personalizado');
-                const selectorBox = document.getElementById('texto-cuenta-seleccionada').parentElement;
-                if (!selectorBox.contains(e.target) && !contenedor.contains(e.target)) {
+                const selectorBox = document.getElementById('texto-cuenta-seleccionada')?.parentElement;
+                if (selectorBox && !selectorBox.contains(e.target) && !contenedor.contains(e.target)) {
                     contenedor.classList.add('hidden');
-                    document.getElementById('icono-flecha-selector').classList.remove('rotate-180');
+                    document.getElementById('icono-flecha-selector')?.classList.remove('rotate-180');
                 }
             });
         });
 
         function irAPantallaVitrina() {
+            document.getElementById('pantalla-detalle').classList.add('hidden');
             document.getElementById('pantalla-checkout').classList.add('hidden');
             document.getElementById('pantalla-vitrina').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function irAPantallaCheckout() {
-            document.getElementById('pantalla-vitrina').classList.add('hidden');
-            document.getElementById('pantalla-checkout').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            lucide.createIcons();
         }
 
         async function cargarServiciosVitrina() {
@@ -216,13 +237,75 @@
                         </div>
                         <div class="flex items-center justify-between pt-3 border-t border-stone-900">
                             <span class="text-amber-400 font-mono font-bold text-base">$${parseFloat(s.precio).toFixed(2)}</span>
-                            <button onclick="seleccionarServicioParaReserva(${s.id}, '${s.titulo}', ${s.precio})" class="bg-stone-900 border border-stone-800 text-amber-400 px-4 py-2 rounded-xl text-xs uppercase font-futurista font-bold hover:bg-amber-500 hover:text-black transition-colors cursor-pointer">
-                                Reservar
+                            <button onclick='abrirDetalleServicio(${JSON.stringify(s)})' class="bg-stone-900 border border-stone-800 text-amber-400 px-4 py-2 rounded-xl text-xs uppercase font-futurista font-bold hover:bg-amber-500 hover:text-black transition-colors cursor-pointer">
+                                Ver Detalle
                             </button>
                         </div>
                     </div>
                 `;
             });
+            lucide.createIcons();
+        }
+
+        function abrirDetalleServicio(s) {
+            servicioActualObjeto = s;
+            document.getElementById('pantalla-vitrina').classList.add('hidden');
+            document.getElementById('pantalla-checkout').classList.add('hidden');
+            document.getElementById('pantalla-detalle').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            document.getElementById('detalle-titulo').innerText = s.titulo;
+            document.getElementById('detalle-precio').innerText = `$${parseFloat(s.precio).toFixed(2)}`;
+            document.getElementById('detalle-descripcion').innerText = s.descripcion || 'Sin descripción disponible para este servicio.';
+
+            // Manejo de imágenes (si tienes varias fotos separadas por coma o un array, o la principal)
+            let imagenesArray = [];
+            if (s.imagen) imagenesArray.push(s.imagen);
+            if (s.imagenes_adicionales) {
+                // Si guardas varias en texto separadas por coma o JSON
+                let extras = s.imagenes_adicionales.split(',').map(img => img.trim());
+                imagenesArray = imagenesArray.concat(extras);
+            }
+
+            const imgPrincipal = document.getElementById('detalle-imagen-principal');
+            const contMiniaturas = document.getElementById('detalle-galeria-miniaturas');
+
+            if (imagenesArray.length > 0) {
+                imgPrincipal.src = imagenesArray[0];
+                if (imagenesArray.length > 1) {
+                    contMiniaturas.innerHTML = imagenesArray.map((img, idx) => `
+                        <div onclick="document.getElementById('detalle-imagen-principal').src='${img}'" class="w-16 h-16 rounded-xl overflow-hidden border border-stone-800 cursor-pointer hover:border-amber-400 flex-shrink-0">
+                            <img src="${img}" class="w-full h-full object-cover">
+                        </div>
+                    `).join('');
+                    contMiniaturas.classList.remove('hidden');
+                } else {
+                    contMiniaturas.innerHTML = '';
+                    contMiniaturas.classList.add('hidden');
+                }
+            } else {
+                imgPrincipal.src = '';
+                contMiniaturas.classList.add('hidden');
+            }
+            lucide.createIcons();
+        }
+
+        function procederAlCheckoutDesdeDetalle() {
+            if (!servicioActualObjeto) return;
+            
+            document.getElementById('pantalla-detalle').classList.add('hidden');
+            document.getElementById('pantalla-checkout').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            document.getElementById('reserva-servicio-nombre').value = servicioActualObjeto.titulo;
+            document.getElementById('reserva-precio-total').value = servicioActualObjeto.precio;
+            
+            document.getElementById('checkout-titulo-servicio').innerText = servicioActualObjeto.titulo;
+            document.getElementById('checkout-precio-servicio').innerText = `$${parseFloat(servicioActualObjeto.precio).toFixed(2)}`;
+            
+            document.querySelectorAll('.check-adicional').forEach(cb => cb.checked = false);
+            calcularMontosReserva();
+            lucide.createIcons();
         }
 
         async function descargarAdicionalesDeSupabase() {
@@ -256,22 +339,8 @@
             lucide.createIcons();
         }
 
-        function seleccionarServicioParaReserva(id, titulo, precio) {
-            servicioSeleccionadoActual = { id, titulo, precio };
-            document.getElementById('reserva-servicio-nombre').value = titulo;
-            document.getElementById('reserva-precio-total').value = precio;
-            
-            document.getElementById('checkout-titulo-servicio').innerText = titulo;
-            document.getElementById('checkout-precio-servicio').innerText = `$${precio.toFixed(2)}`;
-            
-            document.querySelectorAll('.check-adicional').forEach(cb => cb.checked = false);
-
-            calcularMontosReserva();
-            irAPantallaCheckout();
-        }
-
         function calcularMontosReserva() {
-            let basePrecio = servicioSeleccionadoActual ? servicioSeleccionadoActual.precio : 0;
+            let basePrecio = servicioActualObjeto ? servicioActualObjeto.precio : 0;
             let extras = 0;
             document.querySelectorAll('.check-adicional:checked').forEach(cb => {
                 extras += parseFloat(cb.getAttribute('data-precio')) || 0;

@@ -21,7 +21,7 @@
 </head>
 <body class="text-stone-200 antialiased min-h-screen flex flex-col justify-between grid-bg">
 
-    <!-- ENCABEZADO DE LA VITRINA (SIN ACCESO A PANEL DE CONTROL) -->
+    <!-- ENCABEZADO DE LA VITRINA -->
     <header class="bg-black/40 backdrop-blur-xl border-b border-stone-900/80 sticky top-0 z-40 px-4">
         <div class="max-w-7xl mx-auto h-24 flex items-center justify-between relative z-10">
             <div class="flex items-center space-x-4">
@@ -72,13 +72,13 @@
 
     </main>
 
-    <!-- MODAL DE RESERVAS PARA EL CLIENTE -->
-    <div id="modal-reservas" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel max-w-md w-full p-6 sm:p-8 rounded-3xl border border-stone-800 space-y-6 relative glow-gold">
+    <!-- MODAL DE RESERVAS CON PAGO ADELANTADO -->
+    <div id="modal-reservas" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="glass-panel max-w-md w-full p-6 sm:p-8 rounded-3xl border border-stone-800 space-y-6 relative glow-gold my-8">
             <div class="flex justify-between items-center border-b border-stone-900 pb-4">
                 <div>
                     <h3 class="text-lg font-black font-futurista text-white tracking-wide">Agendar Cita / Reserva</h3>
-                    <p class="text-[11px] text-stone-400 mt-0.5">Completa tus datos para procesar tu solicitud.</p>
+                    <p class="text-[11px] text-stone-400 mt-0.5">Completa tus datos y realiza el pago de porcentaje adelantado.</p>
                 </div>
                 <button onclick="cerrarModalReservas()" class="text-stone-400 hover:text-white p-2 rounded-xl bg-stone-900 border border-stone-800 cursor-pointer">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -100,23 +100,51 @@
                         <input type="text" id="res-servicio" placeholder="General" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
                     </div>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Fecha</label>
-                        <input type="date" id="res-fecha" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Hora</label>
-                        <input type="time" id="res-hora" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+
+                <div class="border-t border-stone-900 pt-3">
+                    <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider block mb-3">1. Agenda Fecha y Hora</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Fecha</label>
+                            <input type="date" id="res-fecha" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Hora</label>
+                            <input type="time" id="res-hora" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
                     </div>
                 </div>
+
+                <div class="border-t border-stone-900 pt-3 space-y-3">
+                    <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider block">2. Método de Pago de Reserva</span>
+                    <select id="res-metodo" onchange="cambiarMetodoPago()" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        <option value="">-- Seleccione método de pago --</option>
+                        <option value="pago_movil">Pago Móvil - Banesco</option>
+                    </select>
+
+                    <!-- Datos bancarios informativos que aparecen al seleccionar Pago Móvil -->
+                    <div id="info-banco" class="hidden bg-stone-950/80 border border-amber-500/30 p-4 rounded-xl space-y-1 text-xs font-mono">
+                        <div class="text-[10px] text-amber-400 font-bold font-futurista uppercase mb-2 flex items-center gap-1.5">
+                            <i data-lucide="info" class="w-3.5 h-3.5"></i> Datos de Transferencia Confirmados
+                        </div>
+                        <p class="text-stone-400">Banco: <span class="text-white">Banesco</span></p>
+                        <p class="text-stone-400">CI / RIF: <span class="text-white">1234567</span></p>
+                        <p class="text-stone-400">Teléfono: <span class="text-white">0414-XXXXXXX</span></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">3. Referencia Bancaria (12 Dígitos)</label>
+                    <input type="text" id="res-referencia" maxlength="12" placeholder="Ingresa los 12 dígitos del pago" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                </div>
+
                 <div>
                     <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Notas adicionales (Opcional)</label>
                     <textarea id="res-detalles" rows="2" placeholder="Comentarios especiales..." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono resize-none"></textarea>
                 </div>
 
                 <button onclick="enviarReservaCliente()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Reserva
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Pagar Reserva
                 </button>
             </div>
         </div>
@@ -134,7 +162,6 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let productosGlobales = [];
-        let categoriaActiva = 'todos';
 
         window.addEventListener('DOMContentLoaded', () => {
             cargarVitrinaPublica();
@@ -164,22 +191,12 @@
             let html = '';
             categoriasSet.forEach(cat => {
                 const nombreMostrar = cat.charAt(0).toUpperCase() + cat.slice(1);
-                const activoClass = cat === 'todos' ? 'bg-amber-500 text-black' : 'bg-stone-900 text-stone-400 border border-stone-800 hover:text-white';
-                html += `<button onclick="filtrarCategoria('${cat}')" class="cat-btn ${activoClass} px-4 py-1.5 rounded-xl text-[10px] uppercase font-futurista font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap">${nombreMostrar}</button>`;
+                html += `<button onclick="filtrarCategoria('${cat}')" class="cat-btn bg-stone-900 text-stone-400 border border-stone-800 hover:text-white px-4 py-1.5 rounded-xl text-[10px] uppercase font-futurista font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap">${nombreMostrar}</button>`;
             });
             contenedor.innerHTML = html;
         }
 
         function filtrarCategoria(cat) {
-            categoriaActiva = cat;
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                if(btn.innerText.toLowerCase() === cat.toLowerCase() || (cat === 'todos' && btn.innerText.toLowerCase() === 'todos')) {
-                    btn.className = "cat-btn bg-amber-500 text-black px-4 py-1.5 rounded-xl text-[10px] uppercase font-futurista font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap";
-                } else {
-                    btn.className = "cat-btn bg-stone-900 text-stone-400 border border-stone-800 hover:text-white px-4 py-1.5 rounded-xl text-[10px] uppercase font-futurista font-bold tracking-wider transition-all cursor-pointer whitespace-nowrap";
-                }
-            });
-
             if(cat === 'todos') {
                 renderizarProductos(productosGlobales);
             } else {
@@ -198,7 +215,6 @@
                 }
             });
 
-            // Eliminar duplicados y limitar a 10
             let imgsUnicas = [...new Set(todasLasImgs)].slice(0, 10);
             const contenedor = document.getElementById('contenedor-slider-publico');
 
@@ -209,7 +225,7 @@
 
             let indexActual = 0;
             let htmlSlides = imgsUnicas.map((img, i) => `
-                <div class="slide-item absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === 0 ? 'opacity-150 z-10' : 'opacity-0 z-0'}">
+                <div class="slide-item absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}">
                     <img src="${img}" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-[#050204] via-transparent to-black/30"></div>
                 </div>
@@ -287,34 +303,54 @@
             document.getElementById('modal-reservas').classList.add('hidden');
         }
 
+        function cambiarMetodoPago() {
+            const metodo = document.getElementById('res-metodo').value;
+            const infoBanco = document.getElementById('info-banco');
+            if(metodo === 'pago_movil') {
+                infoBanco.classList.remove('hidden');
+            } else {
+                infoBanco.classList.add('hidden');
+            }
+        }
+
         async function enviarReservaCliente() {
             const nombre = document.getElementById('res-nombre').value.trim();
             const telefono = document.getElementById('res-telefono').value.trim();
             const servicio = document.getElementById('res-servicio').value.trim() || 'General';
             const fecha = document.getElementById('res-fecha').value;
             const hora = document.getElementById('res-hora').value;
+            const metodo_pago = document.getElementById('res-metodo').value;
+            const referencia = document.getElementById('res-referencia').value.trim();
             const detalles = document.getElementById('res-detalles').value.trim();
 
-            if(!nombre || !telefono || !fecha || !hora) {
-                alert("Por favor completa los campos obligatorios (Nombre, Teléfono, Fecha y Hora).");
+            if(!nombre || !telefono || !fecha || !hora || !metodo_pago || !referencia) {
+                alert("Por favor completa todos los campos obligatorios, incluyendo fecha, hora, método de pago y referencia.");
                 return;
             }
 
-            const payload = { nombre, telefono, servicio, fecha, hora, detalles };
+            if(referencia.length !== 12) {
+                alert("La referencia bancaria debe tener exactamente 12 dígitos.");
+                return;
+            }
+
+            const payload = { nombre, telefono, servicio, fecha, hora, metodo_pago, referencia, detalles };
 
             const { error } = await supabaseClient.from('reservas').insert([payload]);
 
             if(!error) {
-                alert("¡Reserva agendada con éxito! Nos pondremos en contacto contigo pronto.");
+                alert("¡Reserva y pago registrados con éxito! Nos pondremos en contacto contigo pronto.");
                 cerrarModalReservas();
                 document.getElementById('res-nombre').value = '';
                 document.getElementById('res-telefono').value = '';
                 document.getElementById('res-servicio').value = '';
                 document.getElementById('res-fecha').value = '';
                 document.getElementById('res-hora').value = '';
+                document.getElementById('res-metodo').value = '';
+                document.getElementById('res-referencia').value = '';
                 document.getElementById('res-detalles').value = '';
+                document.getElementById('info-banco').classList.add('hidden');
             } else {
-                alert("Error al registrar la reserva: " + error.message);
+                alert("Error al registrar la reserva en Supabase: " + error.message);
             }
         }
     </script>

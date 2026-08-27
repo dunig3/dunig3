@@ -31,12 +31,6 @@
                     <p class="text-[9px] text-amber-500/70 uppercase tracking-[0.3em] font-bold font-futurista">EXPERIENCIA EXCLUSIVA</p>
                 </div>
             </div>
-            <!-- Acceso rápido a Admin o Contacto si se requiere -->
-            <div class="flex items-center gap-3">
-                <a href="https://wa.me/58412XXXXXXX?text=Hola,%20deseo%20más%20información%20sobre%20los%20servicios%20de%20D'UNIG%20LUXURY" target="_blank" class="bg-stone-900 border border-stone-800 hover:border-amber-500/50 text-amber-400 px-4 py-2 rounded-xl text-xs font-futurista font-bold flex items-center gap-2 transition-all">
-                    <i data-lucide="message-circle" class="w-4 h-4"><span>Soporte</span></i>
-                </a>
-            </div>
         </div>
     </header>
 
@@ -189,7 +183,6 @@
                     <select id="res-metodo" onchange="cambiarMetodoPago()" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
                         <option value="">-- Seleccione método de pago --</option>
                         <option value="pago_movil">Pago Móvil - Banesco</option>
-                        <option value="binance">Binance Pay (USDT)</option>
                     </select>
 
                     <div id="info-banco" class="hidden bg-stone-950/80 border border-amber-500/30 p-4 rounded-xl space-y-1 text-xs font-mono">
@@ -197,25 +190,18 @@
                             <i data-lucide="info" class="w-3.5 h-3.5"></i> Datos de Transferencia Confirmados
                         </div>
                         <p class="text-stone-400">Banco: <span class="text-white">Banesco</span></p>
-                        <p class="text-stone-400">CI / RIF: <span class="text-white">V-12345678</span></p>
+                        <p class="text-stone-400">CI / RIF: <span class="text-white">1234567</span></p>
                         <p class="text-stone-400">Teléfono: <span class="text-white">0414-XXXXXXX</span></p>
-                    </div>
-
-                    <div id="info-binance" class="hidden bg-stone-950/80 border border-amber-500/30 p-4 rounded-xl space-y-1 text-xs font-mono">
-                        <div class="text-[10px] text-amber-400 font-bold font-futurista uppercase mb-2 flex items-center gap-1.5">
-                            <i data-lucide="info" class="w-3.5 h-3.5"></i> Binance Pay ID
-                        </div>
-                        <p class="text-stone-400">Pay ID / Correo: <span class="text-white">pagos@dunigluxury.com</span></p>
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Referencia Bancaria / TXID (12+ Dígitos)</label>
-                    <input type="text" id="res-referencia" placeholder="Ingresa los dígitos de la referencia o TXID" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                    <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Referencia Bancaria (12 Dígitos)</label>
+                    <input type="text" id="res-referencia" maxlength="12" placeholder="Ingresa los 12 dígitos del pago" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
                 </div>
 
                 <button onclick="enviarReservaCliente()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Notificar por WhatsApp
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Pagar Reserva
                 </button>
             </div>
         </div>
@@ -225,6 +211,15 @@
     <footer class="border-t border-stone-950 bg-black/60 p-6 text-center text-xs text-stone-500 font-mono tracking-widest mt-16 space-y-2">
         <p>© 2026 D'UNIG LUXURY ECOSISTEMA. TODOS LOS DERECHOS RESERVADOS.</p>
     </footer>
+
+    <!-- SCRIPT DE REGISTRO DEL SERVICE WORKER -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("Service Worker registrado con éxito."))
+                .catch((err) => console.log("Error al registrar el Service Worker: ", err));
+        }
+    </script>
 
     <script>
         const SUPABASE_URL = "https://xcaasrvlpyxfjeyqhyve.supabase.co"; 
@@ -421,15 +416,10 @@
         function cambiarMetodoPago() {
             const metodo = document.getElementById('res-metodo').value;
             const infoBanco = document.getElementById('info-banco');
-            const infoBinance = document.getElementById('info-binance');
-            
-            infoBanco.classList.add('hidden');
-            infoBinance.classList.add('hidden');
-
             if(metodo === 'pago_movil') {
                 infoBanco.classList.remove('hidden');
-            } else if(metodo === 'binance') {
-                infoBinance.classList.remove('hidden');
+            } else {
+                infoBanco.classList.add('hidden');
             }
         }
 
@@ -452,6 +442,11 @@
                 return;
             }
 
+            if(referencia.length !== 12) {
+                alert("La referencia bancaria debe tener exactamente 12 dígitos.");
+                return;
+            }
+
             const payload = {
                 servicio,
                 fecha_cita,
@@ -470,32 +465,14 @@
             const { error } = await supabaseClient.from('reservas').insert([payload]);
 
             if(!error) {
-                alert("¡Reserva y anticipo registrados con éxito en la base de datos! Redirigiendo a WhatsApp...");
+                alert("¡Reserva y anticipo registrados con éxito! Nos pondremos en contacto contigo.");
                 cerrarModalReservas();
-                
-                // Redirección automática a WhatsApp con los datos listos
-                const mensajeWa = `*NUEVA RESERVA - D'UNIG LUXURY*%0A%0A` +
-                                  `👤 *Cliente:* ${nombre}%0A` +
-                                  `📱 *Teléfono:* ${telefono}%0A` +
-                                  `💎 *Servicio:* ${servicio}%0A` +
-                                  `📅 *Fecha:* ${fecha_cita} (${hora_cita})%0A` +
-                                  `💵 *Total:* $${total.toFixed(2)}%0A` +
-                                  `⚡ *Anticipo (${porcentaje_anticipo}%):* $${monto_anticipo.toFixed(2)}%0A` +
-                                  `⏳ *Restante:* $${monto_restante.toFixed(2)}%0A` +
-                                  `💳 *Método:* ${metodo_pago}%0A` +
-                                  `🔖 *Referencia:* ${referencia}`;
-
-                const numeroWhatsAppAdmin = "58412XXXXXXX"; // Reemplaza con tu número de WhatsApp
-                window.open(`https://wa.me/${numeroWhatsAppAdmin}?text=${mensajeWa}`, '_blank');
-
-                // Limpiar campos
                 document.getElementById('res-nombre').value = '';
                 document.getElementById('res-telefono').value = '';
                 document.getElementById('res-fecha').value = '';
                 document.getElementById('res-hora').value = '';
                 document.getElementById('res-referencia').value = '';
                 document.getElementById('info-banco').classList.add('hidden');
-                document.getElementById('info-binance').classList.add('hidden');
             } else {
                 alert("Error al registrar la reserva en Supabase: " + error.message);
             }

@@ -27,7 +27,7 @@
                 <div class="border border-amber-500/30 p-3 rounded-xl bg-stone-950/80 glow-gold"><i data-lucide="shield-alert" class="w-7 h-7 text-amber-400"></i></div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-black tracking-[0.2em] text-white font-futurista">PANEL <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">ADMIN</span></h1>
-                    <p class="text-[9px] text-amber-500/70 uppercase tracking-[0.3em] font-bold font-futurista">GESTIÓN DE PRODUCTOS Y SLIDER (10 FOTOS)</p>
+                    <p class="text-[9px] text-amber-500/70 uppercase tracking-[0.3em] font-bold font-futurista">GESTIÓN DE PRODUCTOS, SLIDER Y RESERVAS</p>
                 </div>
             </div>
             <a href="index.html" class="p-3 rounded-xl border border-stone-800 text-stone-400 hover:text-white transition-all text-xs font-bold uppercase tracking-wider font-futurista bg-stone-900/30 flex items-center gap-2">
@@ -37,6 +37,8 @@
     </header>
 
     <main class="max-w-4xl w-full mx-auto px-4 py-8 flex-grow space-y-6 relative z-10">
+        
+        <!-- SECCIÓN DE GESTIÓN DE PRODUCTOS -->
         <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
             <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
                 <div>
@@ -89,7 +91,6 @@
                         <span id="contador-slider-admin" class="text-[10px] font-mono text-stone-400">0 / 10</span>
                     </div>
                     
-                    <!-- Contenedor con scroll horizontal para los 10 cuadros -->
                     <div id="grid-10-cuadros" class="flex gap-4 overflow-x-auto pb-4 pt-2">
                         <!-- Generado dinámicamente -->
                     </div>
@@ -101,13 +102,30 @@
             </div>
         </div>
 
-        <!-- LISTADO DE PRODUCTOS EXISTENTES PARA EDITAR -->
+        <!-- LISTADO DE PRODUCTOS EXISTENTES PARA EDITAR / BORRAR -->
         <div class="glass-panel p-6 rounded-3xl space-y-4 border border-stone-900">
             <h3 class="text-xs font-black font-futurista uppercase tracking-widest text-white">Productos Registrados en Supabase</h3>
             <div id="lista-productos-admin" class="space-y-2 max-h-60 overflow-y-auto">
                 <div class="text-xs text-stone-500 font-mono">Cargando productos...</div>
             </div>
         </div>
+
+        <!-- SECCIÓN DE GESTIÓN DE RESERVAS -->
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-4 border border-stone-900">
+            <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
+                <div>
+                    <h3 class="text-base font-black font-futurista text-white tracking-wide">Gestión de Reservas</h3>
+                    <p class="text-xs text-stone-400 mt-1">Citas y reservas agendadas por los clientes en línea.</p>
+                </div>
+                <button onclick="cargarReservasAdmin()" class="bg-stone-900 border border-stone-800 text-stone-400 hover:text-white px-3 py-1.5 rounded-xl text-[10px] uppercase font-futurista transition-colors cursor-pointer flex items-center gap-1.5">
+                    <i data-lucide="rotate-cw" class="w-3 h-3 text-amber-400"></i> Actualizar
+                </button>
+            </div>
+            <div id="lista-reservas-admin" class="space-y-3 max-h-80 overflow-y-auto">
+                <div class="text-xs text-stone-500 font-mono">Cargando reservas...</div>
+            </div>
+        </div>
+
     </main>
 
     <footer class="border-t border-stone-950 bg-black/60 p-4 text-center text-[10px] text-stone-600 font-mono tracking-widest mt-12">© 2026 D'UNIG LUXURY ECOSISTEMA. PANEL DE CONTROL.</footer>
@@ -122,6 +140,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             construir10CuadrosAdmin();
             cargarProductosAdmin();
+            cargarReservasAdmin();
             lucide.createIcons();
         });
 
@@ -175,11 +194,17 @@
                         <span class="text-xs font-bold text-white font-futurista">${p.titulo}</span>
                         <span class="text-[10px] text-amber-400 font-mono ml-2">$${parseFloat(p.precio || 0).toFixed(2)}</span>
                     </div>
-                    <button onclick='cargarProductoEnFormulario(${JSON.stringify(p)})' class="bg-stone-900 border border-stone-800 text-stone-300 hover:text-amber-400 px-3 py-1.5 rounded-lg text-[10px] uppercase font-futurista transition-colors cursor-pointer">
-                        Editar
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button onclick='cargarProductoEnFormulario(${JSON.stringify(p)})' class="bg-stone-900 border border-stone-800 text-stone-300 hover:text-amber-400 px-3 py-1.5 rounded-lg text-[10px] uppercase font-futurista transition-colors cursor-pointer">
+                            Editar
+                        </button>
+                        <button onclick='eliminarProducto(${p.id})' class="bg-red-950/40 border border-red-900/50 text-red-400 hover:text-white hover:bg-red-900 px-3 py-1.5 rounded-lg text-[10px] uppercase font-futurista transition-colors cursor-pointer">
+                            Borrar
+                        </button>
+                    </div>
                 </div>
             `).join('');
+            lucide.createIcons();
         }
 
         function limpiarFormulario() {
@@ -254,6 +279,54 @@
                 location.reload();
             } else {
                 alert("Error al guardar: " + error.message);
+            }
+        }
+
+        async function eliminarProducto(id) {
+            if(!confirm("¿Estás seguro de eliminar este producto de Supabase?")) return;
+            const { error } = await supabaseClient.from('productos').delete().eq('id', id);
+            if(!error) {
+                cargarProductosAdmin();
+            } else {
+                alert("Error al eliminar el producto: " + error.message);
+            }
+        }
+
+        // --- GESTIÓN DE RESERVAS ---
+        async function cargarReservasAdmin() {
+            const { data, error } = await supabaseClient.from('reservas').select('*').order('created_at', { ascending: false });
+            const lista = document.getElementById('lista-reservas-admin');
+            
+            if(error || !data || data.length === 0) {
+                lista.innerHTML = `<div class="text-xs text-stone-500 font-mono">No hay reservas registradas en este momento.</div>`;
+                return;
+            }
+
+            lista.innerHTML = data.map(r => `
+                <div class="bg-stone-950 p-4 rounded-xl border border-stone-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-white font-futurista">${r.nombre || 'Cliente sin nombre'}</span>
+                            <span class="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono">${r.fecha || 'Fecha no especificada'} - ${r.hora || ''}</span>
+                        </div>
+                        <p class="text-[11px] text-stone-400 font-mono">Teléfono: <span class="text-white">${r.telefono || 'N/A'}</span> | Servicio: <span class="text-amber-300">${r.servicio || 'General'}</span></p>
+                        ${r.detalles ? `<p class="text-[10px] text-stone-500 font-mono">Notas: ${r.detalles}</p>` : ''}
+                    </div>
+                    <button onclick="eliminarReserva(${r.id})" class="bg-red-950/40 border border-red-900/50 text-red-400 hover:text-white hover:bg-red-900 px-3 py-1.5 rounded-lg text-[10px] uppercase font-futurista transition-colors cursor-pointer self-end sm:self-center">
+                        Eliminar
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        async function eliminarReserva(id) {
+            if(!confirm("¿Estás seguro de eliminar esta reserva?")) return;
+            const { error } = await supabaseClient.from('reservas').delete().eq('id', id);
+            if(!error) {
+                cargarReservasAdmin();
+            } else {
+                alert("Error al eliminar la reserva: " + error.message);
             }
         }
     </script>

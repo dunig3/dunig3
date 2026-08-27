@@ -121,6 +121,7 @@
                     <i data-lucide="rotate-cw" class="w-3 h-3 text-amber-400"></i> Actualizar
                 </button>
             </div>
+            <!-- ID CORREGIDO PARA QUE COINCIDA CON LA FUNCIÓN -->
             <div id="lista-reservas-admin" class="space-y-3 max-h-80 overflow-y-auto">
                 <div class="text-xs text-stone-500 font-mono">Cargando reservas...</div>
             </div>
@@ -293,47 +294,53 @@
         }
 
         async function cargarReservasAdmin() {
-    const contenedor = document.getElementById('contenedor-reservas-admin'); // Asegúrate que tu contenedor tenga este ID o ajústalo
-    if(!contenedor) return;
+            const contenedor = document.getElementById('lista-reservas-admin');
+            if(!contenedor) return;
 
-    const { data, error } = await supabaseClient
-        .from('reservas')
-        .select('*')
-        .order('id', { ascending: false });
+            const { data, error } = await supabaseClient
+                .from('reservas')
+                .select('*')
+                .order('id', { ascending: false });
 
-    if(error || !data || data.length === 0) {
-        contenedor.innerHTML = `<div class="text-xs text-stone-500 font-mono py-6 text-center">No hay reservas registradas en este momento.</div>`;
-        return;
-    }
+            if(error || !data || data.length === 0) {
+                contenedor.innerHTML = `<div class="text-xs text-stone-500 font-mono py-6 text-center">No hay reservas registradas en este momento.</div>`;
+                return;
+            }
 
-    contenedor.innerHTML = data.map(r => `
-        <div class="bg-stone-950/80 border border-stone-800 p-4 rounded-2xl space-y-3 font-mono text-xs">
-            <div class="flex justify-between items-start border-b border-stone-900 pb-2">
-                <div>
-                    <span class="text-amber-400 font-bold uppercase font-futurista">${r.servicio || 'Servicio General'}</span>
-                    <p class="text-white font-bold text-sm mt-0.5">${r.nombre || 'Cliente sin nombre'}</p>
+            contenedor.innerHTML = data.map(r => `
+                <div class="bg-stone-950/80 border border-stone-800 p-4 rounded-2xl space-y-3 font-mono text-xs">
+                    <div class="flex justify-between items-start border-b border-stone-900 pb-2">
+                        <div>
+                            <span class="text-amber-400 font-bold uppercase font-futurista">${r.servicio || 'Servicio General'}</span>
+                            <p class="text-white font-bold text-sm mt-0.5">${r.nombre || 'Cliente sin nombre'}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded-xl text-[10px] font-bold">
+                                ${r.estado || 'Confirmada'}
+                            </span>
+                            <button onclick="eliminarReserva(${r.id})" class="text-red-400 hover:text-red-300 p-1 cursor-pointer" title="Eliminar reserva">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 text-stone-400 text-[11px]">
+                        <p>📞 Tel: <span class="text-white">${r.telefono || 'N/A'}</span></p>
+                        <p>📅 Fecha: <span class="text-white">${r.fecha_cita || 'N/A'}</span></p>
+                        <p>⏰ Hora: <span class="text-white">${r.hora_cita || 'N/A'}</span></p>
+                        <p>💳 Ref (12d): <span class="text-amber-400 font-bold">${r.referencia || 'N/A'}</span></p>
+                    </div>
+
+                    <div class="bg-stone-900/60 p-2.5 rounded-xl flex justify-between items-center text-[11px]">
+                        <div>
+                            <span class="text-stone-400">Total: <strong class="text-white">$${parseFloat(r.total || 0).toFixed(2)}</strong></span>
+                            <span class="text-stone-400 ml-3">Anticipo (${r.porcentaje_anticipo || 50}%): <strong class="text-amber-400">$${parseFloat(r.monto_anticipo || 0).toFixed(2)}</strong></span>
+                        </div>
+                    </div>
                 </div>
-                <span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded-xl text-[10px] font-bold">
-                    ${r.estado || 'Confirmada'}
-                </span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-2 text-stone-400 text-[11px]">
-                <p>📞 Tel: <span class="text-white">${r.telefono || 'N/A'}</span></p>
-                <p>📅 Fecha: <span class="text-white">${r.fecha_cita || 'N/A'}</span></p>
-                <p>⏰ Hora: <span class="text-white">${r.hora_cita || 'N/A'}</span></p>
-                <p>💳 Ref (12d): <span class="text-amber-400 font-bold">${r.referencia || 'N/A'}</span></p>
-            </div>
-
-            <div class="bg-stone-900/60 p-2.5 rounded-xl flex justify-between items-center text-[11px]">
-                <div>
-                    <span class="text-stone-400">Total: <strong class="text-white">$${parseFloat(r.total || 0).toFixed(2)}</strong></span>
-                    <span class="text-stone-400 ml-3">Anticipo (${r.porcentaje_anticipo || 50}%): <strong class="text-amber-400">$${parseFloat(r.monto_anticipo || 0).toFixed(2)}</strong></span>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
+            `).join('');
+            lucide.createIcons();
+        }
 
         async function eliminarReserva(id) {
             if(!confirm("¿Estás seguro de eliminar esta reserva?")) return;

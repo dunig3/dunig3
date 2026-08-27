@@ -27,7 +27,7 @@
                 <div class="border border-amber-500/30 p-3 rounded-xl bg-stone-950/80 glow-gold"><i data-lucide="shield-alert" class="w-7 h-7 text-amber-400"></i></div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-black tracking-[0.2em] text-white font-futurista">PANEL <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">ADMIN</span></h1>
-                    <p class="text-[9px] text-amber-500/70 uppercase tracking-[0.3em] font-bold font-futurista">GESTIÓN DE PRODUCTOS, SLIDER Y RESERVAS</p>
+                    <p class="text-[9px] text-amber-500/70 uppercase tracking-[0.3em] font-bold font-futurista">CENTRO DE CONTROL ECOSISTEMA</p>
                 </div>
             </div>
             <a href="index.html" class="p-3 rounded-xl border border-stone-800 text-stone-400 hover:text-white transition-all text-xs font-bold uppercase tracking-wider font-futurista bg-stone-900/30 flex items-center gap-2">
@@ -38,92 +38,105 @@
 
     <main class="max-w-4xl w-full mx-auto px-4 py-8 flex-grow space-y-6 relative z-10">
         
-        <!-- SECCIÓN DE GESTIÓN DE PRODUCTOS -->
-        <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
-            <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
-                <div>
-                    <h2 class="text-lg font-black font-futurista text-white tracking-wide">Gestión de Producto</h2>
-                    <p class="text-xs text-stone-400 mt-1">Configura título, precio, stock y carga hasta 10 imágenes en alta calidad.</p>
+        <!-- BOTONES DE NAVEGACIÓN / PESTAÑAS -->
+        <div class="grid grid-cols-2 gap-3 p-1.5 bg-stone-950/90 border border-stone-900 rounded-2xl">
+            <button onclick="cambiarTab('productos')" id="btn-tab-productos" class="py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer bg-amber-500 text-black shadow-lg flex items-center justify-center gap-2">
+                <i data-lucide="package" class="w-4 h-4"></i> Productos y Slider
+            </button>
+            <button onclick="cambiarTab('reservas')" id="btn-tab-reservas" class="py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer text-stone-400 hover:text-white flex items-center justify-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Gestión de Reservas
+            </button>
+        </div>
+
+        <!-- SECCIÓN 1: PRODUCTOS Y SLIDER -->
+        <div id="seccion-productos" class="space-y-6">
+            <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-stone-900">
+                <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-black font-futurista text-white tracking-wide">Gestión de Producto</h2>
+                        <p class="text-xs text-stone-400 mt-1">Configura título, precio, stock y carga hasta 10 imágenes en alta calidad.</p>
+                    </div>
+                    <button onclick="limpiarFormulario()" class="bg-stone-900 border border-stone-800 text-stone-400 hover:text-white px-3 py-1.5 rounded-xl text-[10px] uppercase font-futurista transition-colors cursor-pointer">
+                        Nuevo Producto
+                    </button>
                 </div>
-                <button onclick="limpiarFormulario()" class="bg-stone-900 border border-stone-800 text-stone-400 hover:text-white px-3 py-1.5 rounded-xl text-[10px] uppercase font-futurista transition-colors cursor-pointer">
-                    Nuevo Producto
-                </button>
+
+                <input type="hidden" id="producto-id">
+
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Título del Producto</label>
+                            <input type="text" id="input-titulo" placeholder="Ej: Hamburguesa Especial" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Categoría</label>
+                            <input type="text" id="input-categoria" placeholder="General" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Precio ($)</label>
+                            <input type="number" step="0.01" id="input-precio" placeholder="0.00" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Stock</label>
+                            <input type="number" id="input-stock" value="10" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                        <div>
+                            <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Foto Principal (URL)</label>
+                            <input type="text" id="input-foto" placeholder="https://..." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Descripción</label>
+                        <textarea id="input-descripcion" rows="3" placeholder="Detalles del producto..." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono resize-none"></textarea>
+                    </div>
+
+                    <!-- 10 CUADROS PARA EL SLIDER -->
+                    <div class="space-y-2 pt-2 border-t border-stone-900">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider">Imágenes del Slider (Alta Calidad - Hasta 10)</span>
+                            <span id="contador-slider-admin" class="text-[10px] font-mono text-stone-400">0 / 10</span>
+                        </div>
+                        
+                        <div id="grid-10-cuadros" class="flex gap-4 overflow-x-auto pb-4 pt-2">
+                            <!-- Generado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <button onclick="guardarProductoAdmin()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar Producto en Supabase
+                    </button>
+                </div>
             </div>
 
-            <input type="hidden" id="producto-id">
-
-            <div class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Título del Producto</label>
-                        <input type="text" id="input-titulo" placeholder="Ej: Hamburguesa Especial" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Categoría</label>
-                        <input type="text" id="input-categoria" placeholder="General" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
+            <!-- LISTADO DE PRODUCTOS EXISTENTES -->
+            <div class="glass-panel p-6 rounded-3xl space-y-4 border border-stone-900">
+                <h3 class="text-xs font-black font-futurista uppercase tracking-widest text-white">Productos Registrados en Supabase</h3>
+                <div id="lista-productos-admin" class="space-y-2 max-h-60 overflow-y-auto">
+                    <div class="text-xs text-stone-500 font-mono">Cargando productos...</div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Precio ($)</label>
-                        <input type="number" step="0.01" id="input-precio" placeholder="0.00" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Stock</label>
-                        <input type="number" id="input-stock" value="10" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
-                    <div>
-                        <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Foto Principal (URL)</label>
-                        <input type="text" id="input-foto" placeholder="https://..." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Descripción</label>
-                    <textarea id="input-descripcion" rows="3" placeholder="Detalles del producto..." class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono resize-none"></textarea>
-                </div>
-
-                <!-- 10 CUADROS PARA EL SLIDER -->
-                <div class="space-y-2 pt-2 border-t border-stone-900">
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider">Imágenes del Slider (Alta Calidad - Hasta 10)</span>
-                        <span id="contador-slider-admin" class="text-[10px] font-mono text-stone-400">0 / 10</span>
-                    </div>
-                    
-                    <div id="grid-10-cuadros" class="flex gap-4 overflow-x-auto pb-4 pt-2">
-                        <!-- Generado dinámicamente -->
-                    </div>
-                </div>
-
-                <button onclick="guardarProductoAdmin()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar Producto en Supabase
-                </button>
             </div>
         </div>
 
-        <!-- LISTADO DE PRODUCTOS EXISTENTES PARA EDITAR / BORRAR -->
-        <div class="glass-panel p-6 rounded-3xl space-y-4 border border-stone-900">
-            <h3 class="text-xs font-black font-futurista uppercase tracking-widest text-white">Productos Registrados en Supabase</h3>
-            <div id="lista-productos-admin" class="space-y-2 max-h-60 overflow-y-auto">
-                <div class="text-xs text-stone-500 font-mono">Cargando productos...</div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN DE GESTIÓN DE RESERVAS -->
-        <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-4 border border-stone-900">
-            <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
-                <div>
-                    <h3 class="text-base font-black font-futurista text-white tracking-wide">Gestión de Reservas</h3>
-                    <p class="text-xs text-stone-400 mt-1">Citas y reservas agendadas por los clientes en línea.</p>
+        <!-- SECCIÓN 2: GESTIÓN DE RESERVAS (OCULTA POR DEFECTO HASTA CLIC) -->
+        <div id="seccion-reservas" class="space-y-6 hidden">
+            <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-4 border border-stone-900">
+                <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-base font-black font-futurista text-white tracking-wide">Gestión de Reservas</h3>
+                        <p class="text-xs text-stone-400 mt-1">Citas y reservas agendadas por los clientes en línea.</p>
+                    </div>
+                    <button onclick="cargarReservasAdmin()" class="bg-stone-900 border border-stone-800 text-stone-400 hover:text-white px-3 py-1.5 rounded-xl text-[10px] uppercase font-futurista transition-colors cursor-pointer flex items-center gap-1.5">
+                        <i data-lucide="rotate-cw" class="w-3 h-3 text-amber-400"></i> Actualizar Lista
+                    </button>
                 </div>
-                <button onclick="cargarReservasAdmin()" class="bg-stone-900 border border-stone-800 text-stone-400 hover:text-white px-3 py-1.5 rounded-xl text-[10px] uppercase font-futurista transition-colors cursor-pointer flex items-center gap-1.5">
-                    <i data-lucide="rotate-cw" class="w-3 h-3 text-amber-400"></i> Actualizar
-                </button>
-            </div>
-            <!-- ID CORREGIDO PARA QUE COINCIDA CON LA FUNCIÓN -->
-            <div id="lista-reservas-admin" class="space-y-3 max-h-80 overflow-y-auto">
-                <div class="text-xs text-stone-500 font-mono">Cargando reservas...</div>
+                <div id="lista-reservas-admin" class="space-y-3 max-h-[500px] overflow-y-auto">
+                    <div class="text-xs text-stone-500 font-mono">Cargando reservas...</div>
+                </div>
             </div>
         </div>
 
@@ -144,6 +157,31 @@
             cargarReservasAdmin();
             lucide.createIcons();
         });
+
+        // Función para alternar pestañas limpiamente
+        function cambiarTab(tab) {
+            const seccionProductos = document.getElementById('seccion-productos');
+            const seccionReservas = document.getElementById('seccion-reservas');
+            const btnProd = document.getElementById('btn-tab-productos');
+            const btnRes = document.getElementById('btn-tab-reservas');
+
+            if (tab === 'productos') {
+                seccionProductos.classList.remove('hidden');
+                seccionReservas.classList.add('hidden');
+                
+                btnProd.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer bg-amber-500 text-black shadow-lg flex items-center justify-center gap-2";
+                btnRes.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer text-stone-400 hover:text-white flex items-center justify-center gap-2";
+            } else {
+                seccionReservas.classList.remove('hidden');
+                seccionProductos.classList.add('hidden');
+                
+                btnRes.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer bg-amber-500 text-black shadow-lg flex items-center justify-center gap-2";
+                btnProd.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer text-stone-400 hover:text-white flex items-center justify-center gap-2";
+                
+                cargarReservasAdmin(); // Recarga fresca al abrir la pestaña
+            }
+            lucide.createIcons();
+        }
 
         function construir10CuadrosAdmin() {
             const contenedor = document.getElementById('grid-10-cuadros');
@@ -276,7 +314,7 @@
             }
 
             if(!error) {
-                alert("¡Producto sincronizado correctamente con Supabase (hasta 10 fotos)!");
+                alert("¡Producto sincronizado correctamente con Supabase!");
                 location.reload();
             } else {
                 alert("Error al guardar: " + error.message);
@@ -303,7 +341,7 @@
                 .order('id', { ascending: false });
 
             if(error || !data || data.length === 0) {
-                contenedor.innerHTML = `<div class="text-xs text-stone-500 font-mono py-6 text-center">No hay reservas registradas en este momento.</div>`;
+                contenedor.innerHTML = `<div class="text-xs text-stone-500 font-mono py-12 text-center">No hay reservas registradas en este momento.</div>`;
                 return;
             }
 
@@ -318,7 +356,7 @@
                             <span class="bg-amber-500/10 border border-amber-500/30 text-amber-400 px-2.5 py-1 rounded-xl text-[10px] font-bold">
                                 ${r.estado || 'Confirmada'}
                             </span>
-                            <button onclick="eliminarReserva(${r.id})" class="text-red-400 hover:text-red-300 p-1 cursor-pointer" title="Eliminar reserva">
+                            <button onclick="eliminarReserva(${r.id})" class="text-red-400 hover:text-red-300 p-1 cursor-pointer bg-red-950/30 border border-red-900/40 rounded-lg" title="Eliminar reserva">
                                 <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                             </button>
                         </div>

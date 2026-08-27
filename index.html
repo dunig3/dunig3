@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>D'UNIG LUXURY - Vitrina Digital</title>
     
-    <!-- CONFIGURACIÓN PWA Y PANTALLA COMPLETA (SIN BARRAS DE NAVEGACIÓN) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#e5c158">
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+    
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6c...">
+    <link rel="apple-touch-icon" sizes="192x192" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6c...">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="D'UNIG LUXURY">
@@ -31,12 +32,11 @@
 </head>
 <body class="text-stone-200 antialiased min-h-screen flex flex-col justify-between grid-bg">
 
-    <!-- ENCABEZADO DE LA VITRINA -->
     <header class="bg-black/40 backdrop-blur-xl border-b border-stone-900/80 sticky top-0 z-40 px-4">
         <div class="max-w-7xl mx-auto h-24 flex items-center justify-between relative z-10">
             <div class="flex items-center space-x-4">
                 <div class="border border-amber-500/30 p-2 rounded-xl bg-stone-950/80 glow-gold overflow-hidden w-12 h-12 flex items-center justify-center">
-                    <img src="icon-192.png" alt="D'UNIG LUXURY Icon" class="w-full h-full object-cover">
+                    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAYAAACtWK6c..." alt="D'UNIG LUXURY Icon" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-black tracking-[0.2em] text-white font-futurista">D'UNIG <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-500">LUXURY</span></h1>
@@ -47,8 +47,6 @@
     </header>
 
     <main class="max-w-7xl w-full mx-auto px-4 py-8 flex-grow space-y-12 relative z-10">
-        
-        <!-- SLIDER DINÁMICO -->
         <section class="glass-panel rounded-3xl overflow-hidden border border-stone-900 shadow-2xl relative">
             <div id="contenedor-slider-publico" class="relative w-full h-[350px] sm:h-[450px] flex items-center justify-center bg-stone-950 overflow-hidden">
                 <div class="text-xs text-stone-500 font-mono flex items-center gap-2">
@@ -57,7 +55,6 @@
             </div>
         </section>
 
-        <!-- SECCIÓN DE PRODUCTOS -->
         <section class="space-y-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 border-b border-stone-900 pb-4">
                 <div>
@@ -69,15 +66,12 @@
                 </div>
             </div>
 
-            <!-- GRID DE PRODUCTOS -->
             <div id="grid-productos-publico" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div class="text-xs text-stone-500 font-mono col-span-full py-12 text-center">Sincronizando vitrina...</div>
             </div>
         </section>
-
     </main>
 
-    <!-- MODAL DE DETALLE / VISUALIZAR PRODUCTO Y RESERVA -->
     <div id="modal-detalle" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-2xl w-full p-6 sm:p-8 rounded-3xl border border-stone-800 space-y-6 relative glow-gold my-8">
             <div class="flex justify-between items-center border-b border-stone-900 pb-4">
@@ -86,16 +80,12 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-
-            <!-- Galería y Fotos Ampliadas -->
             <div class="space-y-4">
                 <div class="relative h-64 sm:h-80 rounded-2xl overflow-hidden bg-stone-950 border border-stone-800">
                     <img id="det-img-principal" src="" class="w-full h-full object-cover">
                 </div>
                 <div id="det-miniatura-galeria" class="flex gap-2 overflow-x-auto pb-2"></div>
             </div>
-
-            <!-- Información y Precio -->
             <div class="space-y-2 border-t border-stone-900 pt-4">
                 <div class="flex justify-between items-center">
                     <span id="det-categoria" class="text-[10px] uppercase tracking-wider bg-amber-500/10 border border-amber-500/30 text-amber-400 px-3 py-1 rounded-xl font-futurista font-bold"></span>
@@ -103,8 +93,6 @@
                 </div>
                 <p id="det-descripcion" class="text-xs text-stone-300 font-mono leading-relaxed"></p>
             </div>
-
-            <!-- Botón para abrir formulario de reserva -->
             <div class="pt-4 border-t border-stone-900 flex gap-4">
                 <button onclick="abrirModalReservasDesdeDetalle()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="calendar" class="w-4 h-4"></i> Hacer Reserva
@@ -113,19 +101,17 @@
         </div>
     </div>
 
-    <!-- MODAL DE FORMULARIO DE RESERVAS CON CÁLCULO DE ANTICIPO (20% a 70%) -->
     <div id="modal-reservas" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="glass-panel max-w-md w-full p-6 sm:p-8 rounded-3xl border border-stone-800 space-y-6 relative glow-gold my-8">
             <div class="flex justify-between items-center border-b border-stone-900 pb-4">
                 <div>
                     <h3 class="text-lg font-black font-futurista text-white tracking-wide">Agendar Cita / Reserva</h3>
-                    <p class="text-[11px] text-stone-400 mt-0.5">Calcula tu anticipo (20% al 70%) y procesa tu solicitud.</p>
+                    <p class="text-[11px] text-stone-400 mt-0.5">Calcula tu anticipo y procesa tu solicitud.</p>
                 </div>
                 <button onclick="cerrarModalReservas()" class="text-stone-400 hover:text-white p-2 rounded-xl bg-stone-900 border border-stone-800 cursor-pointer">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Tu Nombre</label>
@@ -141,7 +127,6 @@
                         <input type="text" id="res-servicio" readonly class="w-full bg-stone-900 border border-stone-800 text-xs text-amber-400 p-3.5 rounded-xl font-mono">
                     </div>
                 </div>
-
                 <div class="border-t border-stone-900 pt-3">
                     <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider block mb-3">1. Agenda Fecha y Hora</span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -155,8 +140,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- SECCIÓN DE CÁLCULO DE ANTICIPO (20% - 70%) -->
                 <div class="border-t border-stone-900 pt-3 space-y-3">
                     <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider block">2. Porcentaje de Anticipo (20% - 70%)</span>
                     <div class="grid grid-cols-2 gap-4">
@@ -176,8 +159,6 @@
                             <input type="text" id="res-total-display" readonly class="w-full bg-stone-900 border border-stone-800 text-xs text-amber-400 p-3.5 rounded-xl font-mono font-bold">
                         </div>
                     </div>
-
-                    <!-- Resumen del Cálculo -->
                     <div class="bg-stone-950/80 border border-stone-800 p-3 rounded-xl text-xs font-mono space-y-1">
                         <div class="flex justify-between text-stone-400">
                             <span>Monto a pagar de Anticipo:</span>
@@ -189,14 +170,12 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="border-t border-stone-900 pt-3 space-y-3">
                     <span class="text-[10px] uppercase text-amber-400 font-bold font-futurista tracking-wider block">3. Método de Pago y Referencia</span>
                     <select id="res-metodo" onchange="cambiarMetodoPago()" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
                         <option value="">-- Seleccione método de pago --</option>
                         <option value="pago_movil">Pago Móvil - Banesco</option>
                     </select>
-
                     <div id="info-banco" class="hidden bg-stone-950/80 border border-amber-500/30 p-4 rounded-xl space-y-1 text-xs font-mono">
                         <div class="text-[10px] text-amber-400 font-bold font-futurista uppercase mb-2 flex items-center gap-1.5">
                             <i data-lucide="info" class="w-3.5 h-3.5"></i> Datos de Transferencia Confirmados
@@ -206,12 +185,10 @@
                         <p class="text-stone-400">Teléfono: <span class="text-white">0414-XXXXXXX</span></p>
                     </div>
                 </div>
-
                 <div>
                     <label class="text-[10px] uppercase text-stone-400 font-bold block mb-1 font-futurista">Referencia Bancaria (12 Dígitos)</label>
                     <input type="text" id="res-referencia" maxlength="12" placeholder="Ingresa los 12 dígitos del pago" class="w-full bg-stone-950 border border-stone-800 text-xs text-white p-3.5 rounded-xl focus:outline-none focus:border-amber-400 font-mono">
                 </div>
-
                 <button onclick="enviarReservaCliente()" class="w-full bg-amber-500 text-black font-futurista font-black p-4 rounded-xl text-xs uppercase tracking-widest cursor-pointer shadow-lg hover:bg-amber-400 transition-colors flex items-center justify-center gap-2">
                     <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar y Pagar Reserva
                 </button>
@@ -219,7 +196,6 @@
         </div>
     </div>
 
-    <!-- PIE DE PÁGINA -->
     <footer class="border-t border-stone-950 bg-black/60 p-6 text-center text-xs text-stone-500 font-mono tracking-widest mt-16 space-y-2">
         <p>© 2026 D'UNIG LUXURY ECOSISTEMA. TODOS LOS DERECHOS RESERVADOS.</p>
     </footer>
@@ -243,7 +219,6 @@
                 document.getElementById('grid-productos-publico').innerHTML = `<div class="text-xs text-stone-500 font-mono col-span-full text-center">Error al conectar con la base de datos.</div>`;
                 return;
             }
-
             productosGlobales = data;
             extraerCategorias(data);
             renderizarSliderPublico(data);
@@ -252,10 +227,7 @@
 
         function extraerCategorias(productos) {
             const categoriasSet = new Set(['todos']);
-            productos.forEach(p => {
-                if(p.categoria) categoriasSet.add(p.categoria.trim());
-            });
-
+            productos.forEach(p => { if(p.categoria) categoriasSet.add(p.categoria.trim()); });
             const contenedor = document.getElementById('contenedor-categorias');
             let html = '';
             categoriasSet.forEach(cat => {
@@ -283,15 +255,12 @@
                     todasLasImgs = todasLasImgs.concat(arr);
                 }
             });
-
             let imgsUnicas = [...new Set(todasLasImgs)].slice(0, 10);
             const contenedor = document.getElementById('contenedor-slider-publico');
-
             if(imgsUnicas.length === 0) {
                 contenedor.innerHTML = `<div class="text-xs text-stone-500 font-mono">No hay imágenes destacadas disponibles.</div>`;
                 return;
             }
-
             let indexActual = 0;
             let htmlSlides = imgsUnicas.map((img, i) => `
                 <div class="slide-item absolute inset-0 transition-opacity duration-1000 ease-in-out ${i === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}">
@@ -299,25 +268,20 @@
                     <div class="absolute inset-0 bg-gradient-to-t from-[#050204] via-transparent to-black/30"></div>
                 </div>
             `).join('');
-
             contenedor.innerHTML = htmlSlides + `
                 <div class="absolute bottom-4 right-4 z-20 bg-black/60 backdrop-blur-md border border-stone-800 px-3 py-1.5 rounded-xl text-[10px] font-mono text-amber-400">
                     <span id="slider-contador-actual">1</span> / ${imgsUnicas.length}
                 </div>
             `;
-
             if(imgsUnicas.length > 1) {
                 setInterval(() => {
                     const slides = contenedor.querySelectorAll('.slide-item');
                     if(slides.length === 0) return;
                     slides[indexActual].classList.remove('opacity-100', 'z-10');
                     slides[indexActual].classList.add('opacity-0', 'z-0');
-                    
                     indexActual = (indexActual + 1) % slides.length;
-                    
                     slides[indexActual].classList.remove('opacity-0', 'z-0');
                     slides[indexActual].classList.add('opacity-100', 'z-10');
-
                     const contadorEl = document.getElementById('slider-contador-actual');
                     if(contadorEl) contadorEl.innerText = indexActual + 1;
                 }, 4000);
@@ -330,7 +294,6 @@
                 grid.innerHTML = `<div class="text-xs text-stone-500 font-mono col-span-full py-12 text-center">No hay productos en esta categoría.</div>`;
                 return;
             }
-
             grid.innerHTML = productos.map(p => `
                 <div class="glass-panel rounded-3xl overflow-hidden border border-stone-900 flex flex-col justify-between group hover:border-amber-500/40 transition-all">
                     <div class="relative h-56 bg-stone-950 overflow-hidden">
@@ -373,7 +336,6 @@
                 imagenes = imagenes.concat(arr);
             }
             let imgsUnicas = [...new Set(imagenes)];
-
             document.getElementById('det-img-principal').src = imgsUnicas[0] || '';
 
             const miniaturasDiv = document.getElementById('det-miniatura-galeria');
@@ -392,11 +354,9 @@
         function abrirModalReservasDesdeDetalle() {
             if(!productoSeleccionadoActual) return;
             cerrarModalDetalle();
-            
             document.getElementById('res-servicio').value = productoSeleccionadoActual.titulo;
             document.getElementById('res-total-display').value = `$${parseFloat(productoSeleccionadoActual.precio || 0).toFixed(2)}`;
             calcularMontosReserva();
-            
             document.getElementById('modal-reservas').classList.remove('hidden');
         }
 
@@ -408,7 +368,6 @@
             if(!productoSeleccionadoActual) return;
             const precioTotal = parseFloat(productoSeleccionadoActual.precio || 0);
             const porcentaje = parseFloat(document.getElementById('res-porcentaje').value) || 50;
-            
             const montoAnticipo = (precioTotal * porcentaje) / 100;
             const montoRestante = precioTotal - montoAnticipo;
 
@@ -441,34 +400,19 @@
             const detalles = document.getElementById('res-servicio').value + " - Metodo: " + metodo_pago;
 
             if(!nombre || !telefono || !fecha_cita || !hora_cita || !metodo_pago || !referencia) {
-                alert("Por favor completa todos los campos obligatorios, incluyendo fecha, hora, método de pago y referencia.");
+                alert("Por favor completa todos los campos obligatorios.");
                 return;
             }
-
             if(referencia.length !== 12) {
                 alert("La referencia bancaria debe tener exactamente 12 dígitos.");
                 return;
             }
 
-            const payload = {
-                servicio,
-                fecha_cita,
-                hora_cita,
-                referencia,
-                total,
-                estado: 'Confirmada',
-                monto_anticipo,
-                monto_restante,
-                porcentaje_anticipo,
-                nombre,
-                telefono,
-                detalles
-            };
-
+            const payload = { servicio, fecha_cita, hora_cita, referencia, total, estado: 'Confirmada', monto_anticipo, monto_restante, porcentaje_anticipo, nombre, telefono, detalles };
             const { error } = await supabaseClient.from('reservas').insert([payload]);
 
             if(!error) {
-                alert("¡Reserva y anticipo registrados con éxito! Nos pondremos en contacto contigo.");
+                alert("¡Reserva y anticipo registrados con éxito!");
                 cerrarModalReservas();
                 document.getElementById('res-nombre').value = '';
                 document.getElementById('res-telefono').value = '';
@@ -477,7 +421,7 @@
                 document.getElementById('res-referencia').value = '';
                 document.getElementById('info-banco').classList.add('hidden');
             } else {
-                alert("Error al registrar la reserva en Supabase: " + error.message);
+                alert("Error al registrar la reserva: " + error.message);
             }
         }
     </script>

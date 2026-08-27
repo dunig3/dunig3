@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración - D'UNIG LUXURY</title>
+    
+    <!-- Configuración PWA (Agregado) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#e5c158">
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -122,7 +127,7 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2: GESTIÓN DE RESERVAS (OCULTA POR DEFECTO HASTA CLIC) -->
+        <!-- SECCIÓN 2: GESTIÓN DE RESERVAS -->
         <div id="seccion-reservas" class="space-y-6 hidden">
             <div class="glass-panel p-6 sm:p-8 rounded-3xl space-y-4 border border-stone-900">
                 <div class="border-b border-stone-900 pb-4 flex justify-between items-center">
@@ -158,6 +163,13 @@
             lucide.createIcons();
         });
 
+        // Registro del Service Worker para activar la PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("Service Worker registrado con éxito."))
+                .catch((err) => console.log("Error al registrar el Service Worker: ", err));
+        }
+
         // Función para alternar pestañas limpiamente
         function cambiarTab(tab) {
             const seccionProductos = document.getElementById('seccion-productos');
@@ -178,7 +190,7 @@
                 btnRes.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer bg-amber-500 text-black shadow-lg flex items-center justify-center gap-2";
                 btnProd.className = "py-3 px-4 rounded-xl font-futurista text-xs uppercase font-bold transition-all cursor-pointer text-stone-400 hover:text-white flex items-center justify-center gap-2";
                 
-                cargarReservasAdmin(); // Recarga fresca al abrir la pestaña
+                cargarReservasAdmin(); 
             }
             lucide.createIcons();
         }
